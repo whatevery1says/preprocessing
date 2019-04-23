@@ -3,10 +3,6 @@ import os
 import pandas as pd
 import spacy
 
-# Configuration
-data_dir = 'data'
-filename = os.listdir(data_dir)[0] # The first file in the corpus
-
 # NB. This model is too small for practical use.
 # Switch to 'en_core_web_lg' for production
 nlp = spacy.load('en_core_web_sm')
@@ -83,11 +79,4 @@ def doc_features(data_dir, filename):
     """Return a dataframe containing the manifest features."""
     # Read the manifest and convert features to a dataframe
     return features_from_json(read_file(data_dir, filename)['features'])
-
-# Generate and save the features for a file
-generate_features(data_dir, filename, display=False, save=True)
-
-# Get the features for a file
-doc_features = doc_features(data_dir, filename)
-print(doc_features)
 
