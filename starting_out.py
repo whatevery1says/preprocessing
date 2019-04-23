@@ -57,6 +57,8 @@ def save_features(data_dir, filename, features):
     with open(os.path.join(data_dir, filename), 'r') as f:
         doc = json.loads(f.read())
         doc['features'] = features
+        # Update the token_count property
+        doc['token_count'] = len(features)
     with open(os.path.join(data_dir, filename), 'w') as f:
         f.write(json.dumps(doc))
 
@@ -80,3 +82,14 @@ def doc_features(data_dir, filename):
     # Read the manifest and convert features to a dataframe
     return features_from_json(read_file(data_dir, filename)['features'])
 
+def token_count(data_dir, filename, include_punctuation=True):
+    """Read the token_count property from the manifest."""
+    doc = read_file(data_dir, filename)
+    if include_punctuation == False:
+        rows = json.loads(doc['features'])
+        return len([item[2] for item in rows if item[2] != 'PUNCT'])
+    else:
+        if 'token_count' in doc:
+            return doc['token_count']
+        else:
+            return 'The manifest does not contain a token count.'
