@@ -1,0 +1,5 @@
+0 doc1.txt accept:2 allow:3
+1 doc2.txt accept:1 allow:4
+2 doc3.txt accept:12 allow:13
+3 doc4.txt accept:32 allow:13
+4 doc5.txt accept:10 not:1
