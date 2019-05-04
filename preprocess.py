@@ -491,7 +491,7 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
                 doc.manifest_dict['ngrams'] = doc.ngrams(n=options[1], as_list=True)
     
     # Add the readability scores to the manifest
-    doc.manifest_dict['readability_scores'] = doc.readability_scores(as_list=True)
+    doc.manifest_dict['readability_scores'] = doc.readability_scores(as_list=True)[0]
     
     # Add the total word count (skipping punctuation and line breaks) to the manifest
     doc.manifest_dict['word_count'] = len(doc.filter(column='TOKEN', skip_punct=True, skip_stopwords=False, skip_linebreaks=True))
