@@ -1,5 +1,7 @@
 # The `preprocess.py` script
 
+The `preprocess.py` script is available at [https://github.com/whatevery1says/preprocessing/blob/master/preprocess.py](https://github.com/whatevery1says/preprocessing/blob/master/preprocess.py).
+
 This script is only for preprocessing from the command line. It performs the following algorithm:
 
 1. Reads the JSON manifest(s) into a spaCy nlp object.
@@ -15,11 +17,11 @@ This entire process took between 3-4 seconds for 11 files on my laptop.
 
 The command line arguments are as follows:
 
-`--path` (required): The file path to the directory containing the JSON manifest file. The script should walk through subdirectories.
-`--filename` (required): The name of the JSON manifest file .json with extension.
-`--property` (required): The name of the JSON property to be preprocessed.
-`--add-properties` (optional): A comma-separated list of properties to be added to the manifest file.
-`--remove-properties` (optional): A comma-separated list of properties to be removed from the manifest file.  
+- `--path` (required): The file path to the directory containing the JSON manifest file. The script should walk through subdirectories.
+- `--filename` (required): The name of the JSON manifest file .json with extension.
+- `--property` (required): The name of the JSON property to be preprocessed.
+- `--add-properties` (optional): A comma-separated list of properties to be added to the manifest file.
+- `--remove-properties` (optional): A comma-separated list of properties to be removed from the manifest file.  
 
 ## Preprocessing a single file
 
