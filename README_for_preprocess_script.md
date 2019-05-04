@@ -25,7 +25,7 @@ The command line arguments are as follows:
 
 **Sample commands**
 
-```python
+```
 python preprocess.py --path=data --filename=2010_10_humanities_student_major_5_askreddit.json --property=content_scrubbed
 
 python preprocess.py --path=data --filename=2010_10_humanities_student_major_5_askreddit.json --property=content --remove-properties=content_scrubbed
@@ -35,7 +35,7 @@ python preprocess.py --path=data --filename=2010_10_humanities_student_major_5_a
 
 **Sample commands**
 
-```python
+```
 python preprocess.py --path=data --property=content_scrubbed
 
 python preprocess.py --path=data --property=content --remove-properties=content_scrubbed
