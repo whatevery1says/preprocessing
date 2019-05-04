@@ -46,4 +46,5 @@ python preprocess.py --path=data --property=content --remove-properties=content_
 ## To Do
 
 - Some fine tuning may be needed for the language model.
+- Try switching to the larger spaCy language models.
 - WE1S windowed ngrams need to be added. Right now only normal ngrams work.
