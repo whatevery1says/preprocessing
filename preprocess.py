@@ -498,8 +498,20 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     doc.manifest_dict['word_count'] = len(doc.filter(column='TOKEN', skip_punct=True, skip_stopwords=False, skip_linebreaks=True))
 
     # Add language model metadata
-    doc.manifest_dict['languageModel'] = nlp.meta
-    
+    doc.manifest_dict['language_model'] = nlp.meta
+    custom = {
+        'linebreak_regex': str(LINEBREAK_REGEX),
+        'nonbreak_regex': str(NONBREAKING_SPACE_REGEX),
+        'prefix_re': str(PREFIX_RE),
+        'suffix_re': str(SUFFIX_RE),
+        'infix_re': str(INFIX_RE),
+        'simple_url_re': str(SIMPLE_URL_RE),
+        'add_stopwords': add_stopwords,
+        'remove_stopwords': remove_stopwords,
+        'lemmatization_cases': lemmatization_cases
+    }
+    doc.manifest_dict['language_model']['custom'] = custom
+
     # Save the changes to the manifest
     with open(doc.manifest_filepath, 'w', encoding='utf-8') as f:
         f.write(json.dumps(doc.manifest_dict))
