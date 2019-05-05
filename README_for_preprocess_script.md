@@ -48,3 +48,8 @@ python preprocess.py --path=data --property=content --remove-properties=content_
 - Some fine tuning may be needed for the language model.
 - Try switching to the larger spaCy language models.
 - WE1S windowed ngrams need to be added. Right now only normal ngrams work.
+
+## Notes:
+
+1. To use the large language model first run you first need to install it on the command line with `python -m spacy download en_core_web_lg`. I haven't done this because it would take up a lot of space on my laptop for about a 1% improvement in accuracy. But we could do it on the server. Once it is installed, you just change the `model` configuration to 'en_core_web_lg' in `processing.py`.
+

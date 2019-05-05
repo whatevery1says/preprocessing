@@ -2,10 +2,11 @@
 
 # Configure the data source
 manifest_dir = 'data'
+
 # Configure the language model
 model = 'en_core_web_sm'
 
-# To configure the language model options, see line 49 below.
+# To configure the language model options, see line 51 below.
 
 # Python imports
 import json
