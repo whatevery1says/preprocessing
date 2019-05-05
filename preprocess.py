@@ -497,6 +497,9 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     # Add the total word count (skipping punctuation and line breaks) to the manifest
     doc.manifest_dict['word_count'] = len(doc.filter(column='TOKEN', skip_punct=True, skip_stopwords=False, skip_linebreaks=True))
 
+    # Add language model metadata
+    doc.manifest_dict['languageModel'] = nlp.meta
+    
     # Save the changes to the manifest
     with open(doc.manifest_filepath, 'w', encoding='utf-8') as f:
         f.write(json.dumps(doc.manifest_dict))

@@ -10,8 +10,9 @@ This script is only for preprocessing from the command line. It performs the fol
 4. Creates a bag of terms dict (not including punctuation and line breaks) and adds it to the manifest.
 5. Adds any additional specified properties (e.g. stems or ngrams) as lists to the manifest.
 6. Adds a list of the document's readability scores to the manifest.
-7. Adds the total word count (skipping punctuation and line breaks) to the manifest.    
-8. Saves the new manifest over the old one.
+7. Adds the total word count (skipping punctuation and line breaks) to the manifest.
+8. Adds the language model metadata.
+9. Saves the new manifest over the old one.
     
 This entire process took between 3-4 seconds for 11 files on my laptop.
 
