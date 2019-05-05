@@ -532,7 +532,6 @@ def main(**kwargs):
     except:
         raise KeyError('Please supply a directory path with `--path`.')
     if 'filename' in kwargs:
-        print('filename is here')
         manifest_file = kwargs['filename']
     else:
         manifest_file = None
