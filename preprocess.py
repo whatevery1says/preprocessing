@@ -455,9 +455,16 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     """Start the main preprocessing function."""
     # Start doc timer
     doc_start = time.time()
-    
+
     # Initialise the Document object
-    doc = Document(manifest_dir, filename, content_property='content_scrubbed', kwargs=options)
+    doc = Document(manifest_dir, filename, content_property=content_property, kwargs=options)
+
+    # Make sure the specified json property containing content exits
+    if content_property not in doc.manifest_dict:
+        if 'content_unscrubbed' in doc.manifest_dict:
+            doc = Document(manifest_dir, filename, content_property='content_unscrubbed', kwargs=options)
+        else:
+            doc = Document(manifest_dir, filename, content_property='content', kwargs=options)
 
     # Remove manifest properties if the remove_properties list is submitted
     if remove_properties is not None:
