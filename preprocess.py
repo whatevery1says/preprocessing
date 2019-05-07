@@ -1,12 +1,9 @@
 """preprocessing.py."""
 
-# Configure the data source
-manifest_dir = 'data'
-
 # Configure the language model
 model = 'en_core_web_sm'
 
-# To configure the language model options, see line 51 below.
+# To configure the language model options, see line 48 below.
 
 # Python imports
 import json
@@ -41,31 +38,37 @@ LINEBREAK_REGEX = re.compile(r'((\r\n)|[\n\v])+')
 NONBREAKING_SPACE_REGEX = re.compile(r'(?!\n)\s+')
 PREFIX_RE = re.compile(r'''^[\[\]\("'\.,;:-]''')
 SUFFIX_RE = re.compile(r'''[\[\]\)"'\.,;:-]$''')
-INFIX_RE = re.compile(r'''[~]''')
+INFIX_RE = re.compile(r'''[-~]''')
 SIMPLE_URL_RE = re.compile(r'''^https?://''')
 
 # Load the language model
 print('Preparing language model...')
-nlp = spacy.load(model, disable=['sentencizer'])
+nlp = spacy.load(model)
 
 # Configure language model options
-options = {'merge_noun_chunks': False, 'merge_subtokens': False, 'collect_readability_scores': collect_readability_scores}
 add_stopwords = []
 remove_stopwords = []
 lemmatization_cases = {
-    "humanities": [{ORTH: u'humanities', LEMMA: u'humanities', POS: u'NOUN', TAG: u'NNS'}],
-    "aren't": [{ORTH: "are"}, {ORTH: "n't", LEMMA: "not"}],
-    "isn't": [{ORTH: "is"}, {ORTH: "n't", LEMMA: "not"}]
+    "humanities": [{ORTH: u'humanities', LEMMA: u'humanities', POS: u'NOUN', TAG: u'NNS'}]
 }
 
-# Add Custom Tokenizer
+# Configure entity categories to be skipped when merging entities
+skip_entities = []
+options = {
+    'merge_noun_chunks': False,
+    'merge_subtokens': False,
+    'skip_ents': skip_entities,
+    'collect_readability_scores': collect_readability_scores
+    }
+
+# Add Custom Tokenizer if needed
 def custom_tokenizer(nlp):
     """Add custom tokenizer settings."""
     return Tokenizer(nlp.vocab, prefix_search=PREFIX_RE.search,
                                 suffix_search=SUFFIX_RE.search,
                                 infix_finditer=INFIX_RE.finditer,
                                 token_match=SIMPLE_URL_RE.match)
-nlp.tokenizer = custom_tokenizer(nlp)
+# nlp.tokenizer = custom_tokenizer(nlp)
 
 # Handle lemmatisation exceptions
 for k, v in lemmatization_cases.items():
@@ -76,6 +79,23 @@ for word in add_stopwords:
     nlp.vocab[word].is_stop = True
 for word in remove_stopwords:
     nlp.vocab[word].is_stop = False
+
+# Custom entity merging filter
+def skip_ents(doc, skip=[]):
+    """Duplicate spaCy's ner pipe, but with additional filters.
+
+    doc (Doc): The Doc object.
+    ignore (list): A list of spaCy ner categories to ignore (e.g. DATE) when merging entities.
+    RETURNS (Doc): The Doc object with merged entities.
+
+    """
+    with doc.retokenize() as retokenizer:
+        for ent in doc.ents:
+            if ent.label_ not in skip:
+                attrs = {"tag": ent.root.tag, "dep": ent.root.dep, "ent_type": ent.label}
+                retokenizer.merge(ent, attrs=attrs)
+    return doc
+nlp.add_pipe(skip_ents, after='ner')
 
 # Test for the spacy-readability module
 if collect_readability_scores == True:
@@ -186,11 +206,11 @@ class Document():
             nlp.add_pipe(merge_subtok)
         # Build the feature list
         feature_list = []
-        columns = ['TOKEN', 'LEMMA', 'POS', 'TAG', 'STOPWORD', 'ENTITIES']
+        columns = ['TOKEN', 'NORM', 'LEMMA', 'POS', 'TAG', 'STOPWORD', 'ENTITIES']
         for token in self.content:
             # Get named entity info (I=Inside, O=Outside, B=Begin)
             ner = (token.ent_iob_, token.ent_type_)
-            t = [token.text, token.lemma_, token.pos_, token.tag_, str(token.is_stop), ner]
+            t = [token.text, token.norm_, token.lemma_, token.pos_, token.tag_, str(token.is_stop), ner]
             feature_list.append(tuple(t))
         return pd.DataFrame(feature_list, columns=columns)
 
@@ -392,18 +412,23 @@ class Document():
 
 # Not part of the Document class for ease of access.
 # Create bags as separate dicts and then save them to the manifest.
-def bagify(series, as_counter=False):
+def bagify(series, trim_punct=False, as_counter=False):
     """Convert a list of values to a dict of value frequencies.
     
     Parameters:
+    - trim_punct: If True, strips attached punctuation that may have survived tokenisation.
     - as_counter: If True, returns a Python Counter object enabling its most_common() method.
 
     """
     # Make sure we are working with a list of values
+    punct = re.compile(r"^[\!\?\(\),;:\[\]\{\}]|[\!\?\(\),;:\[\]\{\}]$")
     if isinstance(series, pd.DataFrame):
         print('Please select only one columns from the dataframe.')
     if isinstance(series, pd.Series):
-        series = list(series.values)
+        if trim_punct == True:
+            series = [re.sub(punct, '', term) for term in list(series.values)]
+        else:
+            series = [term for term in list(series.values)]
     if as_counter == True:
         return Counter(series)
     else:
@@ -476,11 +501,16 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     features_list = json.loads(pd.DataFrame.to_json(features, orient='values'))
     features_list.insert(0, list(features.columns))
     doc.manifest_dict['features'] = features_list
-    
-    # Bagify the features table (skipping punctuation and line breaks)
-    filtered = doc.filter(column='TOKEN', skip_punct=True, skip_stopwords=False, skip_linebreaks=True)
-    doc.manifest_dict['bag_or_words'] = bagify(filtered['TOKEN'])
-    
+
+    # Bagify the normed tokens (skipping punctuation and line breaks)
+    # filtered = doc.filter(column='NORM', skip_punct=True, skip_stopwords=False, skip_linebreaks=True)
+    # doc.manifest_dict['bag_of_words'] = bagify(list(filtered['NORM'].values))
+    filtered = [token.norm_ for token in doc.content if token.norm_ != '_' and token.is_punct != True and token.is_space != True and token.is_digit !=True]
+    filtered = sorted(filtered)
+    # with open('C:/Users/Scott/Documents/GitHub/whatevery1says/preprocessing/data2/log.txt', 'w', encoding='utf-8') as f:
+    #     f.write(json.dumps(filtered, indent=2))
+    doc.manifest_dict['bag_of_words'] = dict(Counter(filtered))
+
     # Add any additional properties to the manifest:
     if add_properties is not None:
         for property in add_properties:
