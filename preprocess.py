@@ -552,7 +552,8 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
         'simple_url_re': str(SIMPLE_URL_RE),
         'add_stopwords': add_stopwords,
         'remove_stopwords': remove_stopwords,
-        'lemmatization_cases': lemmatization_cases
+        'lemmatization_cases': lemmatization_cases,
+        'skip_entities': skip_entities
     }
     doc.manifest_dict['language_model']['custom'] = custom
 
