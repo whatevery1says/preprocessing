@@ -420,8 +420,9 @@ def bagify(series, trim_punct=False, as_counter=False):
     - as_counter: If True, returns a Python Counter object enabling its most_common() method.
 
     """
+    # An attempt to strip predictably meaningless stray punctuation
+    punct = re.compile(r'\.\W|\W\.|^[\!\?\(\),;:\[\]\{\}]|[\!\?\(\),;:\[\]\{\}]$')
     # Make sure we are working with a list of values
-    punct = re.compile(r"^[\!\?\(\),;:\[\]\{\}]|[\!\?\(\),;:\[\]\{\}]$")
     if isinstance(series, pd.DataFrame):
         print('Please select only one columns from the dataframe.')
     if isinstance(series, pd.Series):
