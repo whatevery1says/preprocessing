@@ -48,12 +48,12 @@ nlp = spacy.load(model)
 # Configure language model options
 add_stopwords = []
 remove_stopwords = []
+skip_entities = ['CARDINAL', 'DATE (except months)', 'QUANTITY', 'TIME']
 lemmatization_cases = {
     "humanities": [{ORTH: u'humanities', LEMMA: u'humanities', POS: u'NOUN', TAG: u'NNS'}]
 }
 
 # Configure entity categories to be skipped when merging entities
-skip_entities = []
 options = {
     'merge_noun_chunks': False,
     'merge_subtokens': False,
@@ -81,7 +81,7 @@ for word in remove_stopwords:
     nlp.vocab[word].is_stop = False
 
 # Custom entity merging filter
-def skip_ents(doc, skip=[]):
+def skip_ents(doc, skip=['CARDINAL', 'DATE', 'QUANTITY', 'TIME']):
     """Duplicate spaCy's ner pipe, but with additional filters.
 
     doc (Doc): The Doc object.
@@ -89,9 +89,16 @@ def skip_ents(doc, skip=[]):
     RETURNS (Doc): The Doc object with merged entities.
 
     """
+    # Match months
+    months = re.compile(r'(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sept(?:ember)?|oct(?:ober)?|nov(?:ember)?|Dec(?:ember)?)')
     with doc.retokenize() as retokenizer:
         for ent in doc.ents:
-            if ent.label_ not in skip:
+            merge = True
+            if ent.label_ in skip:
+                merge = False
+            if ent.label_ == 'DATE' and re.match(months, ent.text.lower()):
+                merge = True
+            if merge == True:
                 attrs = {"tag": ent.root.tag, "dep": ent.root.dep, "ent_type": ent.label}
                 retokenizer.merge(ent, attrs=attrs)
     return doc
@@ -123,7 +130,8 @@ class Document():
         self.options = kwargs['kwargs']
         # Re-do this to deserialise a list of lists.
         if 'features' in self.manifest_dict:
-            self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
+            self.features = self.get_features()
+            # self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
         else:
             self.features = self.get_features()
 
@@ -412,7 +420,7 @@ class Document():
 
 # Not part of the Document class for ease of access.
 # Create bags as separate dicts and then save them to the manifest.
-def bagify(series, trim_punct=False, as_counter=False):
+def bagify(series, trim_punct=True, as_counter=False):
     """Convert a list of values to a dict of value frequencies.
     
     Parameters:
@@ -504,12 +512,10 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     doc.manifest_dict['features'] = features_list
 
     # Bagify the normed tokens (skipping punctuation and line breaks)
-    # filtered = doc.filter(column='NORM', skip_punct=True, skip_stopwords=False, skip_linebreaks=True)
-    # doc.manifest_dict['bag_of_words'] = bagify(list(filtered['NORM'].values))
-    filtered = [token.norm_ for token in doc.content if token.norm_ != '_' and token.is_punct != True and token.is_space != True and token.is_digit !=True]
+    # Attempt to remove stray punctuation
+    punct = re.compile(r'\.\W|\W\.|^[\!\?\(\),;:\[\]\{\}]|[\!\?\(\),;:\[\]\{\}]$')
+    filtered = [re.sub(punct, '', token.norm_) for token in doc.content if token.norm_ != '_' and token.is_punct != True and token.is_space != True and token.is_digit !=True]
     filtered = sorted(filtered)
-    # with open('C:/Users/Scott/Documents/GitHub/whatevery1says/preprocessing/data2/log.txt', 'w', encoding='utf-8') as f:
-    #     f.write(json.dumps(filtered, indent=2))
     doc.manifest_dict['bag_of_words'] = dict(Counter(filtered))
 
     # Add any additional properties to the manifest:
