@@ -2,11 +2,13 @@
 
 # Configure the language model
 model = 'en_core_web_sm'
+sources_csv = 'sources.csv' # Add the path to the sources csv file
 
-# To configure the language model options, see line 48 below.
+# To configure the language model options, see line 50 below.
 
 # Python imports
-import json
+import csv  
+import json  
 import os
 import nltk
 import pandas as pd
@@ -107,6 +109,10 @@ nlp.add_pipe(skip_ents, after='ner')
 # Test for the spacy-readability module
 if collect_readability_scores == True:
     nlp.add_pipe(Readability())
+
+# Load the sources file  
+with open(sources_csv', 'r') as f:
+    sources = [dict(line) for line in csv.DictReader(f)]
 
 # The Document class
 class Document():
@@ -540,6 +546,9 @@ def preprocess(manifest_dir, filename, content_property, kwargs=None, add_proper
     
     # Add the total word count (skipping punctuation and line breaks) to the manifest
     doc.manifest_dict['word_count'] = len(doc.filter(column='TOKEN', skip_punct=True, skip_stopwords=False, skip_linebreaks=True))
+
+    # Add the country in which the document was published
+    doc.manifest_dict['country'] = country = [x for x in sources if x['source_title'] == doc.manifest_dict['pub']][0]['country']
 
     # Add language model metadata
     doc.manifest_dict['language_model'] = nlp.meta
