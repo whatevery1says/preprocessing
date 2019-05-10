@@ -111,7 +111,7 @@ if collect_readability_scores == True:
     nlp.add_pipe(Readability())
 
 # Load the sources file  
-with open(sources_csv', 'r') as f:
+with open('sources_csv', 'r') as f:
     sources = [dict(line) for line in csv.DictReader(f)]
 
 # The Document class
