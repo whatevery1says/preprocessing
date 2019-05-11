@@ -86,12 +86,12 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
         endZip = time.time()
         t = endZip - startZip
-        timings.append([t, startZip, endZip, zip_file])
+        timings.append([t, zip_file])
         print('Processed zip in ' + str(t) + ' seconds.\n\n----------\n\n')
 
     endBatch = time.time()
     t = endBatch - startBatch
-    timings.append([t, startBatch, endBatch, "TOTAL"])
+    timings.append([t, "TOTAL"])
     print('\n\n==========\nProcessed all zip files in ' + str(t) + ' seconds.')
     with open(os.path.join(zip_dir_root,'_timings.txt'), "w") as timefile:
         writer = csv.writer(timefile, dialect='excel-tab')
