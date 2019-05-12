@@ -59,24 +59,29 @@ RUN conda install -c conda-forge \
     'numpy==1.16.3' \
     'pandas==0.23.4' \
     'pyldavis=2.1.2'
-
 RUN conda install -c conda-forge \
     'spacy==2.1.3'
 RUN python -m spacy download en_core_web_sm
 RUN python -m spacy download en_core_web_md
 
+RUN pip install --upgrade pip
+
+
+USER root
+WORKDIR /home/jovyan/utils/
+RUN chown -R 1000:100 /home/jovyan/utils
+
 # Approach 1: copy the Dockerfile repo in directly
-# COPY --chown=1000:100 . /home/jovyan/utils/preprocessing
+COPY --chown=1000:100 . /home/jovyan/utils/preprocessing
 
 # Approach 2: create a git repo, for a commit sandbox
-USER root
-WORKDIR /home/jovyan/utils/preprocessing
-RUN chown -R 1000:100 /home/jovyan/utils/preprocessing
+WORKDIR /home/jovyan/utils/preprocessing-git
+RUN chown -R 1000:100 /home/jovyan/utils/preprocessing-git
 USER $NB_UID
-RUN git clone https://github.com/whatevery1says/preprocessing.git .
+RUN git clone -b clean https://github.com/whatevery1says/preprocessing.git .
 
-# ...in either case, 
-RUN pip install --upgrade pip
+
+USER $NB_UID
 RUN pip install -r requirements.txt
 
 WORKDIR /home/jovyan
