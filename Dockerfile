@@ -3,6 +3,11 @@ FROM jupyter/datascience-notebook:177037d09156
 LABEL maintainer="Jeremy Douglass <jeremydouglass@gmail.com>" \
       description="we1s-notebook, a Jupyter datascience notebook for WE1S"
 
+# Build:
+#   docker build -t jeremydouglass/preprocessing --build-arg CACHE_DATE="$(date)"
+# Run:
+#   docker run -p 8888:8888 jeremydouglass/preprocessing
+
 # Java
 
 ENV JAVA_HOME="/opt/conda/pkgs/openjdk-8.0.144-zulu8.23.0.3_1" \
@@ -66,6 +71,9 @@ RUN python -m spacy download en_core_web_md
 
 RUN pip install --upgrade pip
 
+##################
+#  IMPORT TOOLS  #
+##################
 
 USER root
 WORKDIR /home/jovyan/utils/
