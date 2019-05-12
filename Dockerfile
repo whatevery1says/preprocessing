@@ -78,6 +78,12 @@ COPY --chown=1000:100 . /home/jovyan/utils/preprocessing
 WORKDIR /home/jovyan/utils/preprocessing-git
 RUN chown -R 1000:100 /home/jovyan/utils/preprocessing-git
 USER $NB_UID
+# git clone manual cache-buster, use to bust cache
+# even though changes in git clone cannot be detected
+# use with:
+#   docker build -t jeremydouglass/preprocessing --build-arg CACHE_DATE="$(date)"
+# as per https://github.com/moby/moby/issues/1996#issuecomment-465230472
+ARG CACHE_DATE=0
 RUN git clone -b clean https://github.com/whatevery1says/preprocessing.git .
 
 
