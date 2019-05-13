@@ -1,3 +1,5 @@
+"""zip_preprocess.py."""
+
 import csv
 from shutil import copyfile
 import time
@@ -8,6 +10,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor
 
 def zip_batch_process(zip_dir_root='', source_field='content'):
+    """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
     timings = []
@@ -101,8 +104,13 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
 
 def test():
-    """The base test data is kept in a non-zip extension to avoid accidentally
-    altering its contents. On the test run, the test data"""
+    """Test the script.
+    
+    The base test data is kept in a non-zip extension to 
+    avoid accidentally altering its contents. On the test run,
+    the test data.
+    
+    """
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
     try:
         source = os.path.join(zip_dir_root,'test.zip.BAK')

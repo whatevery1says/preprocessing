@@ -1,4 +1,4 @@
-"""preprocessing.py"""
+"""preprocess.py"""
 
 # Python imports
 import csv  
@@ -9,7 +9,7 @@ import pandas as pd
 import re
 import time
 import unicodedata
-import fire
+# import fire
 import spacy
 from spacy.symbols import ORTH, LEMMA, POS, TAG
 from spacy.tokenizer import Tokenizer
@@ -33,6 +33,7 @@ SIMPLE_URL_RE = re.compile(r'''^https?://''')
 # The Document class
 class Document:
     """Model a document's features.
+
     Parameters:
     - manifest_dir: the path to the manifest directory
     - manifest_file: the name of the manifest file.
@@ -58,6 +59,7 @@ class Document:
 
     def _remove_accents(self, text, method='unicode'):
         """Remove accents from any accented unicode characters in a string.
+
         Either transforms them into ascii equivalents or removes them entirely.
         Parameters:
         - text (str): raw text
@@ -88,9 +90,11 @@ class Document:
 
     def scrub(self, text, unicode_normalization='NFC', accent_removal_method='unicode'):
         """Normalize whitespace and and bad unicode, and remove accents.
+
         Parameters:
         - unicode_normalization: The ftfy.fix_text() `normalization` parameter.
-        - accent_removal_method: The Doc.remove_accents() `method` parameter.    
+        - accent_removal_method: The Doc.remove_accents() `method` parameter.
+
         """
         # Change multiple spaces to one and multiple line breaks to one.
         # Also strip leading/trailing whitespace.
@@ -118,7 +122,8 @@ class Document:
         https://github.com/mholtzscher/spacy_readability).
         
         Parameters:
-        - as_list: Return the features as a list instead of a dataframe
+        - as_list: Return the features as a list instead of a dataframe.
+
         """
         # Handle optional pipes
         if 'merge_noun_chunks' in self.options and self.options['merge_noun_chunks'] == True:
@@ -139,6 +144,7 @@ class Document:
 
     def filter(self, pattern=None, column='TOKEN', skip_punct=False, skip_stopwords=False, skip_linebreaks=False, case=True, flags=0, na=False, regex=True):
         """Return a new dataframe with filtered rows.
+
         Parameters:
         - pattern: The string or regex pattern on which to filter.
         - column: The column where the string is to be searched.
@@ -150,6 +156,7 @@ class Document:
         - na: Filler for empty cells.
         - regex: Set to True; otherwise absolute values will be matched.
         The last four parameters are from `pandas.Series.str.contains`.
+
         """
         # Filter based on column content
         new_df = self.features
@@ -198,6 +205,7 @@ class Document:
         Parameters:
         - options: a list of attributes ('text', 'start', 'end', 'label')
         - as_list: return the entities as a list of tuples.
+
         """
         ents = []
         for ent in self.content.ents:
@@ -223,6 +231,7 @@ class Document:
         Parameters:
         - columns: a list of labels for the score types
         - as_df: return the list as a dataframe.
+
         """
         fkr = self.content._.flesch_kincaid_reading_ease
         fkg = self.content._.flesch_kincaid_grade_level
@@ -235,9 +244,11 @@ class Document:
 
     def stems(self, stemmer='porter', as_list=False):
         """Convert the tokens in a spaCy document to stems.
+
         Parameters:
         - stemmer: the stemming algorithm ('porter' or 'snowball').
         - as_list: return the dataframe as a list.
+
         """
         if stemmer == 'snowball':
             stemmer = SnowballStemmer(language='english')
@@ -251,9 +262,11 @@ class Document:
 
     def ngrams(self, n=2, as_list=False):
         """Convert the tokens in a spaCy document to ngrams.
+
         Parameters:
         - n: The number of tokens in an ngram.
         - as_list: return the dataframe as a list.
+
         """
         ngram_tokens = list(ngrams([token.text for token in self.content], n))
         if as_list == True:
@@ -269,9 +282,11 @@ class Document:
 
     def remove_property(self, properties, save=False):
         """Remove a property from the manifest.
+
         Parameters:
         - property: The property or a list of properties to be removed from the manifest.
         - save: Save the deletion to the manifest.
+
         """
         for property in properties:
             del self.manifest_dict[property]
@@ -282,8 +297,10 @@ class Document:
             
     def serialize(self, df, indent=None):
         """Serialize a dataframe as a list of lists with the column headers as the first element.
+
         Parameters:
         - indent: An integer indicating the number of spaces to indent the json string. Default is None.
+
         """
         j = json.loads(pd.DataFrame.to_json(df, orient='values'))
         j.insert(0, list(df.columns))
@@ -305,6 +322,7 @@ class Document:
         - property: A string naming the JSON property to save to.
         - series: The list or dataframe to save.
         - sort: Alphabetically sort the series to lose token order.
+
         """
         with open(self.manifest_filepath, 'w', encoding='utf-8') as f:
             if isinstance(series, dict) or isinstance(series, list):
@@ -319,8 +337,10 @@ class Document:
                 f.write(json_str)
 
 class Preprocessor:
+    """Configure a preprocessor object."""
 
     def __init__(self, model='en_core_web_sm', sources_csv=None):
+        """Initialize the preprocessor."""
         
         print('Testing readability...')
         self.readability_test()
@@ -359,7 +379,8 @@ class Preprocessor:
         
         # Add readability
         if self.collect_readability_scores == True:
-            from spacy_readability import Readability
+            # Performed by selfe.readability_test()
+            # from spacy_readability import Readability
             self.nlp.add_pipe(Readability())
         
         # Load the sources file
@@ -380,9 +401,13 @@ class Preprocessor:
     # Custom entity merging filter
     def skip_ents(self, doc, skip=['CARDINAL', 'DATE', 'QUANTITY', 'TIME']):
         """Duplicate spaCy's ner pipe, but with additional filters.
-        doc (Doc): The Doc object.
-        ignore (list): A list of spaCy ner categories to ignore (e.g. DATE) when merging entities.
+
+        Parameters:
+        - doc (Doc): The Doc object.
+        - ignore (list): A list of spaCy ner categories to ignore (e.g. DATE) when merging entities.
+        
         RETURNS (Doc): The Doc object with merged entities.
+
         """
         # Match months
         months = re.compile(r'(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sept(?:ember)?|oct(?:ober)?|nov(?:ember)?|Dec(?:ember)?)')
@@ -406,6 +431,7 @@ class Preprocessor:
         Parameters:
         - trim_punct: If True, strips attached punctuation that may have survived tokenisation.
         - as_counter: If True, returns a Python Counter object enabling its most_common() method.
+
         """
         # An attempt to strip predictably meaningless stray punctuation
         punct = re.compile(r'\.\W|\W\.|^[\!\?\(\),;:\[\]\{\}]|[\!\?\(\),;:\[\]\{\}]$')
@@ -423,7 +449,7 @@ class Preprocessor:
             return dict(Counter(series))
 
     def readability_test(self):
-        # Test for the spacy-readability module
+        """Test for the spacy-readability module."""
         try:
             from spacy_readability import Readability
             self.collect_readability_scores = True
@@ -445,6 +471,7 @@ class Preprocessor:
           `ngrams:2` for bigrams or `stems:snowball` for the Snowball stemmer.)
         - remove_properties: A list of properties to remove from the manifest. Default is `None`.
         - kwargs: A dict of options to pass to the main preprocessing function.
+
         """
         # Start the timer
         start = time.time()
@@ -472,6 +499,7 @@ class Preprocessor:
           `ngrams:2` for bigrams or `stems:snowball` for the Snowball stemmer.)
         - remove_properties: A list of properties to remove from the manifest. Default is `None`.
         - kwargs: A dict of options to pass to the main preprocessing function.
+
         """
         self.preprocess(manifest_dir, filename, content_property, kwargs)
     
@@ -520,7 +548,7 @@ class Preprocessor:
                 if property == 'tags':
                     doc.manifest_dict['tags'] = doc.tags(as_list=True)
                 if property.startswith('stems'):
-                    options == property.split(':')
+                    options = property.split(':')
                     doc.manifest_dict['stems'] = doc.stems(stemmer=options[1], as_list=True)
                 if property.startswith('ngrams'):
                     doc.manifest_dict['ngrams'] = doc.ngrams(n=options[1], as_list=True)
@@ -533,7 +561,7 @@ class Preprocessor:
     
         # Add the country in which the document was published
         if self.sources:
-            doc.manifest_dict['country'] = country = [x for x in self.sources if x['source_title'] == doc.manifest_dict['pub']][0]['country']
+            doc.manifest_dict['country'] = [x for x in self.sources if x['source_title'] == doc.manifest_dict['pub']][0]['country']
     
         # Add language model metadata
         doc.manifest_dict['language_model'] = self.nlp.meta
