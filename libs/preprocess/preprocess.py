@@ -341,13 +341,22 @@ class Preprocessor:
 
     def __init__(self, model='en_core_web_sm', sources_csv=None):
         """Initialize the preprocessor."""
-        
-        print('Testing readability...')
-        self.readability_test()
-        
+
         # Load the language model
         print('Preparing language model...')
         self.nlp = spacy.load(model)
+
+        # Import readability
+        print('Testing readability...')
+        try:
+            from spacy_readability import Readability
+            self.collect_readability_scores = True
+        except:
+            msg = """The spacy-readability module is not installed on your system.
+            Readability scores will be unavailable unless you `pip install spacy-_readability`."""
+            print(msg)
+            self.collect_readability_scores = False
+            pass
         
         # Configure language model options
         self.add_stopwords = []
@@ -377,10 +386,8 @@ class Preprocessor:
         
         self.nlp.add_pipe(self.skip_ents, after='ner')
         
-        # Add readability
+        # Add readability to pipeline
         if self.collect_readability_scores == True:
-            # Performed by selfe.readability_test()
-            # from spacy_readability import Readability
             self.nlp.add_pipe(Readability())
         
         # Load the sources file
@@ -447,19 +454,6 @@ class Preprocessor:
             return Counter(series)
         else:
             return dict(Counter(series))
-
-    def readability_test(self):
-        """Test for the spacy-readability module."""
-        try:
-            from spacy_readability import Readability
-            self.collect_readability_scores = True
-            return Readability
-        except:
-            msg = """The spacy-readability module is not installed on your system.
-            Readability scores will be unavailable unless you `pip install spacy-_readability`."""
-            print(msg)
-            self.collect_readability_scores = False
-            pass
 
     def preprocess_dir(self, manifest_dir, content_property, kwargs=None):
         """Walk through a directory of folders and preprocess the json files.
