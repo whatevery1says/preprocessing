@@ -478,7 +478,7 @@ class Preprocessor:
         # Walk the directory and preprocess each file
         all_files = [os.path.join(r, file) for r, d, f in os.walk(manifest_dir) for file in f]
         for file in all_files:
-            if file.endswith('.json'):
+            if file.endswith('.json') and not file.startswith('._'):
                 file = file.replace('\\', '/') # Handle Windows paths
                 tmp = file.split('/')
                 path = '/'.join(tmp[:-1])
@@ -509,7 +509,12 @@ class Preprocessor:
         doc_start = time.time()
     
         # Initialise the Document object
-        doc = Document(manifest_dir, filename, content_property=content_property, model=self.nlp, kwargs=kwargs)
+        try: 
+            doc = Document(manifest_dir, filename, content_property=content_property, model=self.nlp, kwargs=kwargs)
+        except UnicodeDecodeError as error:
+            print('Document failed:', filename)
+            print(error)
+            return False
     
         # Make sure the specified json property containing content exits
         if content_property not in doc.manifest_dict:
