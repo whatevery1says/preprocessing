@@ -18,6 +18,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
     # get list of all zips
     zip_files = zip_scanner(zip_dir_root)
+    print(len(zip_files), 'zip files found')
 
     # create a FuzzyHasher for making and comparing hashes
     fhr = FuzzyHasher(source_field=source_field, prefilter='baggify,lower_alnum')
@@ -44,6 +45,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
             # get file list
             json_files = [entry.path for entry in os.scandir(manifest_dir) if entry.path.endswith(".json")]
+            print(len(json_files), 'json files found')
 
             # loop through json files for fixes and fuzzy hash
             for json_file in json_files:
