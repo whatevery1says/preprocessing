@@ -79,8 +79,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
                     for result in result_list:
                         writer.writerow(result)
             else:
-                # print('no duplicates.')
-                continue
+                print('\n...no duplicates found.')
 
             ##################
             # RUN PREPROCESSOR
