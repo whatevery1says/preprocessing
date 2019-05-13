@@ -130,13 +130,14 @@ def test():
     
     """
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
-    try:
-        source = os.path.join(zip_dir_root,'test.zip.BAK')
-        dest = os.path.join(zip_dir_root,'test.zip')
-        copyfile(source, dest)
-    except FileNotFoundError:
-        print("No such file:", source)
-        raise
+    for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
+        try:
+            source = os.path.join(zip_dir_root, filename)
+            dest = os.path.join(zip_dir_root, filename + '.zip')
+            copyfile(source, dest)
+        except FileNotFoundError:
+            print("No such file:", source)
+            raise
     zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
     
 
