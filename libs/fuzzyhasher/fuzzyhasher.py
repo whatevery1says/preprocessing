@@ -77,7 +77,8 @@ class FuzzyHasher:
         for path in paths:
             with open(path, 'r') as file:
                 hash_string = json.load(file)['content-hash-ssdeep']
-                chunksize, chunk, double_chunk = hash_string.split(':')
+                # Get chunksize, chunk, double_chunk
+                chunksize, _, _ = hash_string.split(':')
                 if chunksize not in hash_by_file:
                     hash_by_file[chunksize] = {}
                 hash_by_file[chunksize][hash_string] = path
