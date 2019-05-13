@@ -8,6 +8,8 @@ list of all whitespace-separated tokens.
 
 Currently only the ssdeep algorithm is supported, but it could
 be extended with additional algorithms.
+
+On Windows, install ssdeep with https://github.com/MacDue/ssdeep-windows-32_64.
 """
 
 import json
