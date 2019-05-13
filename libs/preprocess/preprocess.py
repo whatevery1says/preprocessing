@@ -46,6 +46,12 @@ class Document:
         self.nlp = model
         self.manifest_filepath = os.path.join(manifest_dir, manifest_file)
         self.manifest_dict = self._read_manifest()
+        # Make sure the specified json property containing content exits
+        if content_property not in self.manifest_dict:
+            if 'content_unscrubbed' in self.manifest_dict:
+                content_property = 'content_unscrubbed'
+            else:
+                content_property = 'content'
         self.doc_string = self.scrub(self._get_docstring(content_property))
         self.content = self.nlp(self.doc_string)
         # self.options = kwargs['kwargs']
@@ -510,12 +516,12 @@ class Preprocessor:
             print(error)
             return False
     
-        # Make sure the specified json property containing content exits
-        if content_property not in doc.manifest_dict:
-            if 'content_unscrubbed' in doc.manifest_dict:
-                doc = Document(manifest_dir, filename, content_property='content_unscrubbed', model=self.nlp, kwargs=kwargs)
-            else:
-                doc = Document(manifest_dir, filename, content_property='content', model=self.nlp, kwargs=kwargs)
+        # # Make sure the specified json property containing content exits
+        # if content_property not in doc.manifest_dict:
+        #     if 'content_unscrubbed' in doc.manifest_dict:
+        #         doc = Document(manifest_dir, filename, content_property='content_unscrubbed', model=self.nlp, kwargs=kwargs)
+        #     else:
+        #         doc = Document(manifest_dir, filename, content_property='content', model=self.nlp, kwargs=kwargs)
     
         # Remove manifest properties if the remove_properties list is submitted
         if remove_properties is not None:
