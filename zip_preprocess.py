@@ -1,6 +1,7 @@
 """zip_preprocess.py."""
 
 import csv
+import json
 from shutil import copyfile
 import time
 import os
@@ -41,13 +42,31 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
             zed.open()
             manifest_dir = zed.getdir()
 
-            # do fuzzy hashing
+            # get file list
             json_files = [entry.path for entry in os.scandir(manifest_dir) if entry.path.endswith(".json")]
+
+            # loop through json files for fixes and fuzzy hash
             for json_file in json_files:
-                change = fhr.add_hash_to_json_file(json_file)
-                # print(change)
-                if change:
-                    changed = True
+                with open(json_file, 'r+') as f:
+                    data = json.load(f)
+
+                    # fix for Reddit files -- move content-scrubbed to content
+                    changed_scrub = False
+                    if 'content_scrubbed' in data and 'content' not in data:
+                        data['content'] = data.pop('content_scrubbed')
+                        changed_scrub = True
+
+                    # request a hash add, record if it changed the file
+                    changed_hash = fhr.add_hash_to_json(data)
+                    
+                    # modify file only if something changed
+                    changed_file = changed_scrub or changed_hash
+                    if changed_file:
+                        f.seek(0)
+                        json.dump(data, f, indent=2)
+                        f.truncate()
+                        # mark zip for saving if any file changed
+                        changed = True
 
             # deduplicate
             results = fhr.compare_files_in_dir(zed.getdir())
