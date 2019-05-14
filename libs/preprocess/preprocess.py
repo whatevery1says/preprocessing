@@ -46,12 +46,22 @@ class Document:
         self.nlp = model
         self.manifest_filepath = os.path.join(manifest_dir, manifest_file)
         self.manifest_dict = self._read_manifest()
-        # Make sure the specified json property containing content exits
-        if content_property not in self.manifest_dict:
-            if 'content_unscrubbed' in self.manifest_dict:
-                content_property = 'content_unscrubbed'
-            else:
-                content_property = 'content'
+        # Hack to deal the inconsistencies in our current collection
+        special_cases = ['content', 'content_scrubbed', 'content_unscrubbed']
+        # Look for some user-supplied content property
+        if content_property in self.manifest_dict and content_property not in special_cases:
+            pass
+        # Transfer `content-unscrubbed` to `content`
+        elif 'content-unscrubbed' in self.manifest_dict:
+            self.manifest_dict['content'] = self.manifest_dict['content-unscrubbed']
+            del self.manifest_dict['content-unscrubbed']
+        # Transfer `content_scrubbed` to `content`
+        elif 'content_scrubbed' in self.manifest_dict:
+            self.manifest_dict['content'] = self.manifest_dict['content_scrubbed']
+            del self.manifest_dict['content_scrubbed']
+        # Otherwise, assume the `content` property
+        else:
+            content_property = 'content'
         self.doc_string = self.scrub(self._get_docstring(content_property))
         self.content = self.nlp(self.doc_string)
         # self.options = kwargs['kwargs']
