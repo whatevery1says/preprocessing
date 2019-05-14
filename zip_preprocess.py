@@ -136,7 +136,7 @@ def test():
             copyfile(source, dest)
         except FileNotFoundError:
             print("No such file:", source)
-            raise
+            pass
     zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
     
 
