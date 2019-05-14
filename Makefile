@@ -1,5 +1,6 @@
 check:
-	pycodestyle .
+	-pycodestyle . > lint-pycodestyle.txt
+	-pylint ../preprocessing >> lint-pylint.txt
 
 docker-build:
 	docker build -t jeremydouglass/preprocessing .
