@@ -8,7 +8,7 @@ import os
 
 from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
-from libs.preprocess.preprocess import Preprocessor
+from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 
 def zip_batch_process(zip_dir_root='', source_field='content'):
     """Batch preprocess."""
@@ -52,11 +52,8 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
                 with open(json_file, 'r+') as f:
                     data = json.load(f)
 
-                    # fix for Reddit files -- move content-scrubbed to content
-                    changed_scrub = False
-                    if 'content_scrubbed' in data and 'content' not in data:
-                        data['content'] = data.pop('content_scrubbed')
-                        changed_scrub = True
+                    # fix for non-standard content fields
+                    changed_scrub = content_field_standardize(data)
 
                     # request a hash add, record if it changed the file
                     changed_hash = fhr.add_hash_to_json(data)

@@ -29,6 +29,26 @@ INFIX_RE = re.compile(r'''[-~]''')
 SIMPLE_URL_RE = re.compile(r'''^https?://''')
 
 
+def content_field_standardize(data):
+    """Takes a dict (json data) and standardizes
+    the location of its content field.
+    """
+    changed_content = False
+    # lexis-nexis files -- move content-unscrubbed to content
+    if 'content_unscrubbed' in data:
+        data['content'] = data.pop('content_unscrubbed')
+        changed_content = True
+    if 'content_scrubbed' in data :
+        # lexis-nexis -- remove useless scrubbed content fields
+        if 'content' in data:
+            data.pop('content_scrubbed')
+            changed_content = True
+        # Reddit-collection files -- move content-scrubbed to content
+        elif 'content' not in data:
+            data['content'] = data.pop('content_scrubbed')
+            changed_content = True
+    return changed_content
+
 
 # The Document class
 class Document:
@@ -46,22 +66,6 @@ class Document:
         self.nlp = model
         self.manifest_filepath = os.path.join(manifest_dir, manifest_file)
         self.manifest_dict = self._read_manifest()
-        # Hack to deal the inconsistencies in our current collection
-        special_cases = ['content', 'content_scrubbed', 'content_unscrubbed']
-        # Look for some user-supplied content property
-        if content_property in self.manifest_dict and content_property not in special_cases:
-            pass
-        # Transfer `content-unscrubbed` to `content`
-        elif 'content-unscrubbed' in self.manifest_dict:
-            self.manifest_dict['content'] = self.manifest_dict['content-unscrubbed']
-            del self.manifest_dict['content-unscrubbed']
-        # Transfer `content_scrubbed` to `content`
-        elif 'content_scrubbed' in self.manifest_dict:
-            self.manifest_dict['content'] = self.manifest_dict['content_scrubbed']
-            del self.manifest_dict['content_scrubbed']
-        # Otherwise, assume the `content` property
-        else:
-            content_property = 'content'
         self.doc_string = self.scrub(self._get_docstring(content_property))
         self.content = self.nlp(self.doc_string)
         # self.options = kwargs['kwargs']
@@ -525,13 +529,6 @@ class Preprocessor:
             print('Document failed:', filename)
             print(error)
             return False
-    
-        # # Make sure the specified json property containing content exits
-        # if content_property not in doc.manifest_dict:
-        #     if 'content_unscrubbed' in doc.manifest_dict:
-        #         doc = Document(manifest_dir, filename, content_property='content_unscrubbed', model=self.nlp, kwargs=kwargs)
-        #     else:
-        #         doc = Document(manifest_dir, filename, content_property='content', model=self.nlp, kwargs=kwargs)
     
         # Remove manifest properties if the remove_properties list is submitted
         if remove_properties is not None:
