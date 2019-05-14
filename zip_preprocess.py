@@ -1,19 +1,24 @@
+"""zip_preprocess.py."""
+
 import csv
+import json
 from shutil import copyfile
 import time
 import os
 
 from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
-from libs.preprocess.preprocess import Preprocessor
+from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 
 def zip_batch_process(zip_dir_root='', source_field='content'):
+    """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
     timings = []
 
     # get list of all zips
     zip_files = zip_scanner(zip_dir_root)
+    print(len(zip_files), 'zip files found')
 
     # create a FuzzyHasher for making and comparing hashes
     fhr = FuzzyHasher(source_field=source_field, prefilter='baggify,lower_alnum')
@@ -38,13 +43,29 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
             zed.open()
             manifest_dir = zed.getdir()
 
-            # do fuzzy hashing
+            # get file list
             json_files = [entry.path for entry in os.scandir(manifest_dir) if entry.path.endswith(".json")]
+            print(len(json_files), 'json files found')
+
+            # loop through json files for fixes and fuzzy hash
             for json_file in json_files:
-                change = fhr.add_hash_to_json_file(json_file)
-                # print(change)
-                if change:
-                    changed = True
+                with open(json_file, 'r+') as f:
+                    data = json.load(f)
+
+                    # fix for non-standard content fields
+                    changed_scrub = content_field_standardize(data)
+
+                    # request a hash add, record if it changed the file
+                    changed_hash = fhr.add_hash_to_json(data)
+                    
+                    # modify file only if something changed
+                    changed_file = changed_scrub or changed_hash
+                    if changed_file:
+                        f.seek(0)
+                        json.dump(data, f, indent=2)
+                        f.truncate()
+                        # mark zip for saving if any file changed
+                        changed = True
 
             # deduplicate
             results = fhr.compare_files_in_dir(zed.getdir())
@@ -57,8 +78,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
                     for result in result_list:
                         writer.writerow(result)
             else:
-                # print('no duplicates.')
-                continue
+                print('\n...no duplicates found.')
 
             ##################
             # RUN PREPROCESSOR
@@ -101,16 +121,22 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
 
 def test():
-    """The base test data is kept in a non-zip extension to avoid accidentally
-    altering its contents. On the test run, the test data"""
+    """Test the script.
+    
+    The base test data is kept in a non-zip extension to 
+    avoid accidentally altering its contents. On the test run,
+    the test data.
+    
+    """
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
-    try:
-        source = os.path.join(zip_dir_root,'test.zip.BAK')
-        dest = os.path.join(zip_dir_root,'test.zip')
-        copyfile(source, dest)
-    except FileNotFoundError:
-        print("No such file:", source)
-        raise
+    for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
+        try:
+            source = os.path.join(zip_dir_root, filename)
+            dest = os.path.join(zip_dir_root, filename + '.zip')
+            copyfile(source, dest)
+        except FileNotFoundError:
+            print("No such file:", source)
+            pass
     zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
     
 

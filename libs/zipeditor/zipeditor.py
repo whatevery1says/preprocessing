@@ -1,5 +1,4 @@
-"""ZipEditor
-"""
+"""zipeditor.py."""
 
 import os
 import shutil
@@ -13,7 +12,9 @@ def zip_scanner(source_path=''):
     return [entry.path for entry in os.scandir(source_path) if entry.path.endswith(".zip")]
 
 class ZipEditor:
-    """Provides an editing context for a ZIP file. `open()` extracts a ZIP file
+    """Provide an editing context for a ZIP file.
+    
+    `open()` extracts a ZIP file
     into a temporary directory and returns the directory. After modification,
     `save()` replaces the ZIP file with a newly zipped copy of the temp directory.
     Close cleans up and removes the temp contents -- or use `with` for auto-cleanup.
@@ -21,14 +22,16 @@ class ZipEditor:
     This wrapper exists because editing files inside a ZIP is not supported in the
     standard zipfile library. This approach does not file lock the zip during editing,
     but it should handle very large zip files better than in-memory.
+
     """
     
     def __init__(self, file):
-        """
-        Create a new ZipEditor based on a 
+        """Create a new ZipEditor based on a file.
+
         Args:
             file: a ZIP file. Can be a path to a file (a string), a file-like object, or a path-like object.
-            """
+
+        """
         self.file = file
         self.tmpdir = None
 
@@ -37,7 +40,7 @@ class ZipEditor:
         self._close()
 
     def __enter__(self):
-        """Enter context using `with`"""
+        """Enter context using `with`."""
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -45,7 +48,7 @@ class ZipEditor:
         self._close()
 
     def close(self):
-        """Close and remove temp directory"""
+        """Close and remove temp directory."""
         was_open = self._close()
         if not was_open:
             raise IOError("Zip file not open.")
@@ -68,9 +71,11 @@ class ZipEditor:
             raise IOError("Zip file already open.")
 
     def save(self, outfile=None):
-        """
+        """Save the file.
+
         !! Appears to create a .zip.zip !!
         https://stackoverflow.com/q/1855095/7207622
+
         """
         if not outfile:
             outfile = self.file
@@ -82,7 +87,7 @@ class ZipEditor:
             raise IOError("Zip file not open.")
  
     def _close(self):
-        """Close and remove temp directory"""
+        """Close and remove temp directory."""
         if self.tmpdir:
             self.tmpdir.cleanup()
             self.tmpdir = None
