@@ -1,5 +1,3 @@
-en-core-web-sm==2.1.0
-en-core-web-md==2.1.0
 fire==0.1.3
 ftfy==5.5.1
 nltk==3.4.1
@@ -8,3 +6,10 @@ pandas==0.23.4
 spacy==2.1.3
 spacy-readability==1.4.1
 ssdeep==3.3
+
+## must be installed via python -m spacy download en_core_web_sm
+## ...so don't install via `pip install -r requirements.txt`
+## and instead use: `make setup` (which will also install requirements.txt)
+# en-core-web-sm==2.1.0
+# en-core-web-md==2.1.0
+# en-core-web-md==2.1.0
