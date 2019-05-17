@@ -138,7 +138,13 @@ def test():
             print("No such file:", source)
             pass
     zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
-    
+
+
+def run(zip_dir_root='.'):
+    zip_dir_root = os.path.join(os.getcwd(), )
+    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
+
 
 if __name__ == '__main__':
-    test()
+    # test()
+    run('data_zip')
