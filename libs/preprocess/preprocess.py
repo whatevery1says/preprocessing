@@ -72,8 +72,8 @@ class Document:
         self.options = kwargs
         # Re-do this to deserialise a list of lists.
         if 'features' in self.manifest_dict:
-            self.features = self.get_features()
-            # self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
+            # self.features = self.get_features()
+            self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
         else:
             self.features = self.get_features()
 
@@ -145,13 +145,14 @@ class Document:
         - as_list: Return the features as a list instead of a dataframe.
 
         """
-        # Handle optional pipes
-        if 'merge_noun_chunks' in self.options and self.options['merge_noun_chunks'] == True:
-            merge_nps = self.nlp.create_pipe('merge_noun_chunks')
-            self.nlp.add_pipe(merge_nps)
-        if 'merge_subtokens' in self.options and self.options['merge_subtokens'] == True:
-            merge_subtok = self.nlp.create_pipe('merge_subtokens')
-            self.nlp.add_pipe(merge_subtok)
+        # Handle optional pipes - disabled for optimisation
+        # if 'merge_noun_chunks' in self.options and self.options['merge_noun_chunks'] == True:
+        #     merge_nps = self.nlp.create_pipe('merge_noun_chunks')
+        #     self.nlp.add_pipe(merge_nps)
+        # if 'merge_subtokens' in self.options and self.options['merge_subtokens'] == True:
+        #     merge_subtok = self.nlp.create_pipe('merge_subtokens')
+        #     self.nlp.add_pipe(merge_subtok)
+
         # Build the feature list
         feature_list = []
         columns = ['TOKEN', 'NORM', 'LEMMA', 'POS', 'TAG', 'STOPWORD', 'ENTITIES']
@@ -398,11 +399,11 @@ class Preprocessor:
         for k, v in self.lemmatization_cases.items():
             self.nlp.tokenizer.add_special_case(k, v)
         
-        # Add and remove custom stop words
-        for word in self.add_stopwords:
-            self.nlp.vocab[word].is_stop = True
-        for word in self.remove_stopwords:
-            self.nlp.vocab[word].is_stop = False
+        # Add and remove custom stop words - disabled for optimisation
+        # for word in self.add_stopwords:
+        #     self.nlp.vocab[word].is_stop = True
+        # for word in self.remove_stopwords:
+        #     self.nlp.vocab[word].is_stop = False
         
         self.nlp.add_pipe(self.skip_ents, after='ner')
         
@@ -410,7 +411,7 @@ class Preprocessor:
         if self.collect_readability_scores == True:
             self.nlp.add_pipe(Readability())
         
-        # Load the sources file
+        # Load the sources file - disabled for optimisation
         self.sources = ''
         if sources_csv:
             with open(sources_csv, 'r') as f:
