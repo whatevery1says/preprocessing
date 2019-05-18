@@ -1,4 +1,4 @@
-sa
+a
 able
 about
 above
@@ -329,7 +329,6 @@ seems
 seen
 self
 selves
-sensible
 sent
 serious
 seriously
