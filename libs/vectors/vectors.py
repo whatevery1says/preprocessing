@@ -148,7 +148,11 @@ def vectorize_dir(json_directory, vectors_file, model, stoplist):
                   )
 
     """
+    # Delete pre-existing file
+    if os.path.isfile(vectors_file):
+        os.remove(vectors_file)
     files = sorted(file for file in os.listdir(json_directory) if file.endswith('.json'))
     for i, file in enumerate(files):
-        vectors = Vectors(i, file, vectors_file, stoplist=stoplist)
+        file = json_directory + '/' + file
+        vectors = Vectors(i, file, vectors_file, model, stoplist=stoplist)
         vectors.save()
