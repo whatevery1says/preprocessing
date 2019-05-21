@@ -67,7 +67,7 @@ class LinkFilter:
     def __init__(self, links_data=[]):
         """Initialize the LinkFilter with a link list."""
         self.clear()
-        self._links = links_data
+        self.links = links_data
 
     # def append_weighted_links(self, links_data, threshold):
     #     """Given links with scores, filter by score and append filtered links.
