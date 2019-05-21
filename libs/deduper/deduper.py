@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 First it filters the data by weight.
 From the data, it builds a links dictionary, src -> dst.
@@ -6,42 +5,6 @@ From the links, it builds a list of complete graphs -- articles which are all du
 """
 
 import itertools
-
-test_links = [
-        # single duplicate listing
-        ['single.a', 'single.b'],
-
-        # double duplicate listing
-        ['double.a', 'double.b'],
-        ['double.b', 'double.a'],
-
-        # self-duplicate (bad data)
-        ['self.a', 'self.a'],
-
-        # a complete graph
-        ['complete.a', 'complete.b'],
-        ['complete.b', 'complete.c'],
-        ['complete.c', 'complete.a'],
-
-        # # a chain with a shared duplicate
-        ['chain.a', 'chain.ab'],
-        ['chain.ab', 'chain.b'],
-
-        # a complex graph -- diamond
-        ['cx1.WEST', 'cx1.NORTH'],
-        ['cx1.WEST', 'cx1.SOUTH'],
-        ['cx1.EAST', 'cx1.NORTH'],
-        ['cx1.EAST', 'cx1.SOUTH'],
-
-        # a complex graph -- two triangles with a shared point
-        ['cx2.A1', 'cx2.A2'],
-        ['cx2.A2', 'cx2.SHARE'],
-        ['cx2.A1', 'cx2.SHARE'],
-        ['cx2.B1', 'cx2.B2'],
-        ['cx2.B2', 'cx2.SHARE'],
-        ['cx2.B1', 'cx2.SHARE'],
-        ]
-
 
 def filter_pairs_by_values(seq, values):
     """"""
@@ -275,10 +238,10 @@ class LinkFilter:
             raise ValueError("filter must be 'keep','remove', or 'both'")
 
     def filter_nodes(self, source='components', filter='both'):
-        """A list of nodes, filtered by components or complete components.
+        """A list of nodes, filtered from components or complete components.
         When filtered by components, each component removes all nodes but one.
-        When filtered by complete, each complete component removes all but one.
-        Results may be returned as nodes to keep, remove, or both."""
+        When filtered by complete, each complete component removes all but one,
+        others are untouched. Results may be nodes to keep, remove, or both."""
         keep = []
         remove = []
         for component in self.components:
@@ -323,87 +286,3 @@ class LinkFilter:
         """repr for class objects."""
         prstr = self.links or ""
         return(self.__class__.__name__ + "(" + self.links.__str__() + ")")
-    
-    # def delete_complete(self):
-    #     for neighborhood, members in self.neighborhood.items():
-    #         if len(neighborhood) == len(members):
-    #             # complete subgraphs of size 2/3/4 have only exclusive members.
-    #             # Nodes are each linked to each, and other to each other.
-    #             # take the first member and delete the others
-    #             head, *tail = sorted(members)
-    #             self.saves.add(head)
-    #             for t in tail:
-    #                 self.deletes.add(t)
-    #         elif len(neighborhood) == 2 and len(members) == 1:
-    #             # terminal nodes in complex groups can be saved and have
-    #             # their connecting node marked for deletion
-    #                 for d in subgraph.difference(*members):
-    #                     deletes.add(d)
-    #                 saves.add(*members)
-    #         else:
-    #             print("Warning! complex subgraph:", subgraph, members)
-    #     for d in self.deletes:
-    #         if d in self.saves:
-    #             self.deletes.remove(d)
-    #         links = list(filter_pairs_by_values(links, list(deletes)))
-
-def test():
-
-    ls = LinkFilter(test_links)
-    print(ls)
-    print('\nlinks:\n', ls.links, '\n')
-    print('links_dict:\n', ls.links_dict, '\n')
-    print('neighborhoods:\n', ls.neighborhoods, '\n')
-    print('leaves\n', ls.leaves, '\n')
-    print('components:\n', ls.components, '\n')
-    print('complete:\n', ls.complete, '\n')
-    
-    print('\nFILTERING: components\n')
-    
-    print('filter nodes (components):\n',
-          ls.filter_nodes(source='components'), '\n')
-    print('keep nodes (components):\n',
-          ls.filter_nodes(source='components', filter='keep'), '\n')
-    print('remove nodes (components):\n',
-          ls.filter_nodes(source='components', filter='remove'), '\n')
-    print('filter links (components):\n',
-          ls.filter_links(source='components') ,'\n')
-    print('remove links (components):\n',
-          ls.remove_links(source='components'), '\n')
-    
-
-    print('\nFILTERING: complete\n')
-
-    ls.links = test_links
-    
-    print('filter nodes (complete):\n',
-          ls.filter_nodes(source='complete'), '\n')
-    print('keep nodes (complete):\n',
-          ls.filter_nodes(source='complete', filter='keep'), '\n')
-    print('remove nodes (complete):\n',
-          ls.filter_nodes(source='complete', filter='remove'), '\n')
-    print('filter links (complete):\n',
-          ls.filter_links(source='complete'), '\n')
-    print('remove links (complete):\n',
-          ls.remove_links(source='complete'), '\n')
-
-    print('\nFILTERING: leaves\n')
-
-    ls.links = test_links
-    print('remove leaves:\n', ls.remove_leaves(), '\n', ls.links, '\n')
-    print('filter nodes (components):\n',
-          ls.filter_nodes(source='components'), '\n')
-    
-
-test()
-
-# # detect pairs
-# for key, value in links_dict.items():
-#     if len(value) == 1:
-#         only_value = next(iter(value))
-#         if len(links_dict[only_value]) == 1:
-#             if key not in deletes:
-#                 deletes.append(only_value)
-#                 saves.append
-#                 print('pair', key, value)
-
