@@ -52,7 +52,8 @@ class Vectors:
             self.tokens = self.get_tokens()
             self.bag = self.bagify()
         # Create a row of vectors and save it to the vectors file
-        self.vectors = self.get_vectors()
+        # self.vectors = self.get_vectors()
+        self.vector_sequence = self.get_vector_sequence()
         self.vectors_path = vectors_path
         # self.save()
 
@@ -115,6 +116,8 @@ class Vectors:
 
     def get_vectors(self, strip_stopwords=True):
         """Convert a dictionary bag of words to MALLET vectors format.
+
+        Note: This is deprecated code which probably won't work.
         
         Parameters:
         - strip_stopwords: Boolean to remove words from a custom list.
@@ -125,16 +128,41 @@ class Vectors:
         for k, v in self.bag.items():
             # Another check on stray punctuation
             if k.isalnum() == True:
-                if strip_stopwords == True and k not in self.stoplist:
+                if strip_stopwords == False:
+                    row += k.replace(' ', '_') + ':' + str(v) + ' '
+                elif strip_stopwords == True and k not in self.stoplist:
                     row += k.replace(' ', '_') + ':' + str(v) + ' '
                 else:
-                    row += k.replace(' ', '_') + ':' + str(v) + ' '
+                    pass
+        return row.strip()
+
+    def get_vector_sequence(self, strip_stopwords=True):
+        """Convert a dictionary bag of words to a sequence of terms based on term counts.
+        
+        Parameters:
+        - strip_stopwords: Boolean to remove words from a custom list.
+        
+        """
+        row = self.index + ' ' + self.filename + ' '
+        for k, v in self.bag.items():
+            # Another check on stray punctuation
+            if k.isalnum() == True:
+                if strip_stopwords == False:
+                    term = k.replace(' ', '_') + ' '
+                    terms = (term * v)
+                    row += terms
+                elif strip_stopwords == True and k not in self.stoplist:
+                    term = k.replace(' ', '_') + ' '
+                    terms = (term * v)
+                    row += terms
+                else:
+                    pass
         return row.strip()
 
     def save(self):
         """Append the row to the vectors file."""
         with open(self.vectors_path, 'a', encoding='utf-8') as f:
-            f.write(self.vectors.strip() + '\n')
+            f.write(self.vector_sequence.strip() + '\n')
 
 
 def vectorize_dir(json_directory, vectors_file, model, stoplist):
