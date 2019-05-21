@@ -9,6 +9,7 @@ import os
 from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
+from libs.deduper.deduper import LinkFilter
 
 def zip_batch_process(zip_dir_root='', source_field='content'):
     """Batch preprocess."""
@@ -33,6 +34,9 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
     # create a Preprocessor
     pp = Preprocessor()
+    
+    # create a LinkFilter
+    lf = LinkFilter()
 
     # loop over zips and unpack for editing
     for zip_file in zip_files:
@@ -77,6 +81,15 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
                     writer = csv.writer(dupefile, dialect='excel-tab')
                     for result in result_list:
                         writer.writerow(result)
+                
+                # create delete list
+                lf.links = result_list
+                deletes_list = lf.filter_nodes(source='components', filter='remove')
+                print('dl', deletes_list)
+                with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
+                    for item in deletes_list:
+                        delfile.write("%s\n" % item)
+            
             else:
                 print('\n...no duplicates found.')
 
