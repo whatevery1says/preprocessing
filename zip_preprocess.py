@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
 """zip_preprocess.py."""
 
+import argparse
+import sys
 import csv
 import json
 from shutil import copyfile
@@ -151,7 +154,24 @@ def test():
             print("No such file:", source)
             pass
     zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
-    
+
+
+def main(args):
+    """Collection of actions to execute on run."""
+    print('args.inpath:', args.inpath)
+    zip_batch_process(zip_dir_root=args.inpath, source_field='content')
+
 
 if __name__ == '__main__':
-    test()
+    PARSER = argparse.ArgumentParser(description=__doc__,
+                                     usage='use "%(prog)s --help" for more information',
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    PARSER.add_argument('-i', '--inpath', default='.', help='input path for directory of zips, e.g. "../input"')
+    # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
+    # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
+    # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')
+    if not sys.argv[1:]:
+        PARSER.print_help()
+        PARSER.exit()
+    ARGS = PARSER.parse_args()
+    main(ARGS)
