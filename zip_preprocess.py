@@ -73,7 +73,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
             # deduplicate
             results = fhr.compare_files_in_dir(zed.getdir())
-            result_list = [result for result in results]
+            result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
             if result_list:
                 print('\n...duplicates found:', result_list, '\n')
                 changed = True
