@@ -10,7 +10,7 @@ from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 
-def zip_batch_process(zip_dir_root='', source_field='content'):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -91,7 +91,13 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
             # dependencies with the Document class, so I'm not confident
             # that this was done correctly -- it needs Scott to do a code
             # review.
-            pp.preprocess_dir(manifest_dir=manifest_dir, content_property=source_field, kwargs=options)
+            with open(preprocessing_log, 'a') as preprocessing_log:
+                try:
+                    pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content_scrubbed', kwargs=options)
+                    preprocessing_log.write(manifest_dir + ',success\n')
+                except:
+                    preprocessing_log.write(manifest_dir + ',fail\n')
+            # pp.preprocess_dir(manifest_dir=manifest_dir, content_property=source_field, kwargs=options)
             # right now pre-processing can't indicate no change -- if it COULD
             # then we could skip re-compressing and copying zips that
             # don't need to be  updated. This would greatly increase performance
@@ -137,7 +143,9 @@ def test():
         except FileNotFoundError:
             print("No such file:", source)
             pass
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
+    # Configure the path to the preprocessing log here
+    preprocessing_log = '../preprocessing_log.csv'
+    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
     
 
 if __name__ == '__main__':
