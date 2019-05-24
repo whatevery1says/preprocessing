@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
 """zip_preprocess.py."""
 
+import argparse
+import sys
 import csv
 import json
 from shutil import copyfile
@@ -9,6 +12,7 @@ import os
 from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
+from libs.deduper.deduper import LinkFilter
 
 def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log):
     """Batch preprocess."""
@@ -33,6 +37,9 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
     # create a Preprocessor
     pp = Preprocessor()
+    
+    # create a LinkFilter
+    lf = LinkFilter()
 
     # loop over zips and unpack for editing
     for zip_file in zip_files:
@@ -69,7 +76,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
             # deduplicate
             results = fhr.compare_files_in_dir(zed.getdir())
-            result_list = [result for result in results]
+            result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
             if result_list:
                 print('\n...duplicates found:', result_list, '\n')
                 changed = True
@@ -77,6 +84,15 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     writer = csv.writer(dupefile, dialect='excel-tab')
                     for result in result_list:
                         writer.writerow(result)
+                
+                # create delete list
+                lf.links = result_list
+                deletes_list = lf.filter_nodes(source='components', filter='remove')
+                print('dl', deletes_list)
+                with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
+                    for item in deletes_list:
+                        delfile.write("%s\n" % item)
+            
             else:
                 print('\n...no duplicates found.')
 
@@ -143,10 +159,26 @@ def test():
         except FileNotFoundError:
             print("No such file:", source)
             pass
+
     # Configure the path to the preprocessing log here
     preprocessing_log = '../preprocessing_log.csv'
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
-    
+    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)    
+
+def main(args):
+    """Collection of actions to execute on run."""
+    print('args.inpath:', args.inpath)
+    zip_batch_process(zip_dir_root=args.inpath, source_field='content')
 
 if __name__ == '__main__':
-    test()
+    PARSER = argparse.ArgumentParser(description=__doc__,
+                                     usage='use "%(prog)s --help" for more information',
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    PARSER.add_argument('-i', '--inpath', default='.', help='input path for directory of zips, e.g. "../input"')
+    # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
+    # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
+    # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')
+    if not sys.argv[1:]:
+        PARSER.print_help()
+        PARSER.exit()
+    ARGS = PARSER.parse_args()
+    main(ARGS)
