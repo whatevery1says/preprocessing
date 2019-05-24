@@ -162,12 +162,15 @@ def test():
 
     # Configure the path to the preprocessing log here
     preprocessing_log = '../preprocessing_log.csv'
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)    
+    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
 
 def main(args):
     """Collection of actions to execute on run."""
     print('args.inpath:', args.inpath)
-    zip_batch_process(zip_dir_root=args.inpath, source_field='content')
+
+    # Configure the path to the preprocessing log here
+    preprocessing_log = '../preprocessing_log.csv'
+    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description=__doc__,
