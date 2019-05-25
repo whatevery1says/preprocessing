@@ -154,6 +154,11 @@ def test():
     """
 
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
+    source_field = 'content'
+    preprocessing_log = '_preprocessing_log.csv'
+    wikifier_output_dir = 'wikifier'
+    skip_rerun = True
+
     for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
         try:
             source = os.path.join(zip_dir_root, filename)
@@ -162,10 +167,13 @@ def test():
         except FileNotFoundError:
             print("No such file:", source)
             pass
-
-    # Configure the path to the preprocessing log here
-    preprocessing_log = '../preprocessing_log.csv'
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
+            
+    zip_batch_process(zip_dir_root=zip_dir_root,
+                      source_field=source_field,
+                      preprocessing_log=preprocessing_log,
+                      wikifier_output_dir=wikifier_output_dir,
+                      skip_rerun=skip_rerun
+                      )
 
 def main(args):
     """Collection of actions to execute on run."""
