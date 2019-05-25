@@ -359,6 +359,16 @@ class Document:
                 self.manifest_dict[property] = json.loads(json_str)
                 f.write(json_str)
 
+    def export_to_wikifier(self, data_dir, manifest_name, output_dir=None):
+        """Save a copy of the content to the Wikifier text folder."""
+        filename = data_dir + '__' + manifest_name.strip('.json') + '.txt'
+        output_filepath = os.path.join(output_dir, filename)
+        if output_dir is not None:
+            with open(output_filepath, 'w', encoding='utf-8') as wf:
+                wf.write(self.doc_string)
+        else:
+            print('Warning! No path has been set exporting data for the Wikifier. This step will be ignored.')
+
 class Preprocessor:
     """Configure a preprocessor object."""
 
@@ -602,17 +612,6 @@ class Preprocessor:
         doc_end = time.time()
         doc_t = doc_end - doc_start
         print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
-
-        def export_to_wikifier(self, data_dir, manifest_name, output_dir=None):
-            """Save a copy of the content to the Wikifier text folder."""
-            filename = data_dir + '__' + manifest_name + '.txt'
-            output_filepath = os.path.join(output_dir, filename)
-            if output_dir is not None:
-                with open(output_filepath, 'w', encoding='utf-8') as wf:
-                    wf.write(self.doc_string)
-            else:
-                print('Warning! No path has been set exporting data for the Wikifier. This step will be ignored.')
-
 
 
 # def main(**kwargs):
