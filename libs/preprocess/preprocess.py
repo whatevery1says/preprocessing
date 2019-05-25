@@ -376,18 +376,18 @@ class Preprocessor:
         """Initialize the preprocessor."""
 
         # Load the language model
-        print('Preparing language model...')
+        # print('Preparing language model...')
         self.nlp = spacy.load(model)
 
         # Import readability
-        print('Testing readability...')
+        # print('Testing readability...')
         try:
             from spacy_readability import Readability
             self.collect_readability_scores = True
         except:
             msg = """The spacy-readability module is not installed on your system.
             Readability scores will be unavailable unless you `pip install spacy-_readability`."""
-            print(msg)
+            # print(msg)
             self.collect_readability_scores = False
             pass
         
@@ -611,7 +611,7 @@ class Preprocessor:
         # Print time to completion
         doc_end = time.time()
         doc_t = doc_end - doc_start
-        print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
+        # print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
 
 
 # def main(**kwargs):

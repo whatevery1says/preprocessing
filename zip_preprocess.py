@@ -88,7 +88,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                 # create delete list
                 lf.links = result_list
                 deletes_list = lf.filter_nodes(source='components', filter='remove')
-                print('dl', deletes_list)
+                # print('dl', deletes_list)
                 with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
                     for item in deletes_list:
                         delfile.write("%s\n" % item)
@@ -150,7 +150,6 @@ def test():
 
 def main(args):
     """Collection of actions to execute on run."""
-    print('args.inpath:', args.inpath)
 
     # Configure the path to the preprocessing log here
     preprocessing_log = '../preprocessing_log.csv'
