@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir=''):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir='', skip_rerun=False):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -35,6 +35,16 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
         'collect_readability_scores': True
         }
 
+    skip_files = []
+    if(skip_rerun and preprocessing_log):
+        try:
+            with open(preprocessing_log, 'r') as plogfile:
+                reader = csv.reader(plogfile)
+                for row in reader:
+                    skip_files.append(row[1])
+        except FileNotFoundError as err:
+            print("Preprocessing log file not found, will create while logging.")
+
     # create a Preprocessor
     pp = Preprocessor()
     
@@ -43,6 +53,10 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
     # loop over zips and unpack for editing
     for zip_file in zip_files:
+        # skip
+        if(skip_rerun and zip_file in skip_files):
+            print("\n---\nSkipping:", zip_file)
+            continue
         print("\n---\nOpening:", zip_file)
         startZip = time.time()
         with ZipEditor(zip_file) as zed:
@@ -102,11 +116,12 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             
             with open(preprocessing_log, 'a') as preprocessing_log:
                 try:
-                    pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content_scrubbed', kwargs=options)
-                    preprocessing_log.write(manifest_dir + ',success\n')
-                except:
-                    preprocessing_log.write(manifest_dir + ',fail\n')
-            changed = True
+                    pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
+                    preprocessing_log.write('done,' + zip_file + '\n')
+                    changed = True
+                except KeyError as err:
+                    print(err)
+                    preprocessing_log.write('fail,' + manifest_dir + ',' + str(err) + '\n')
 
             if changed:
                 print('\n ...saving:', zip_file)
@@ -154,7 +169,7 @@ def test():
 
 def main(args):
     """Collection of actions to execute on run."""
-    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki)
+    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki, skip_rerun=args.skip)
 
 
 if __name__ == '__main__':
@@ -169,6 +184,8 @@ if __name__ == '__main__':
                         help='json file field for source, e.g. "content"')
     PARSER.add_argument('-w', '--wiki', default='wikifier',
                         help='output directory path for wikifier data, e.g. "wikifier"')
+    PARSER.add_argument('-s', '--skip', action='store_true',
+                        help='skip rerun of any files already listed in log, whether done or fail; false by default')
     # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
     # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
     # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')
