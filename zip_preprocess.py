@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir='', skip_rerun=False):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='_preprocessing_log.csv', wikifier_output_dir='wikifier', skip_rerun=False):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -114,14 +114,14 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
             os.makedirs(pp.wikifier_output_dir, exist_ok=True)
             
-            with open(preprocessing_log, 'a') as preprocessing_log:
+            with open(preprocessing_log, 'a') as plogfile:
                 try:
                     pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
-                    preprocessing_log.write('done,' + zip_file + '\n')
+                    plogfile.write('done,' + zip_file + '\n')
                     changed = True
                 except KeyError as err:
                     print(err)
-                    preprocessing_log.write('fail,' + manifest_dir + ',' + str(err) + '\n')
+                    plogfile.write('fail,' + manifest_dir + ',' + str(err) + '\n')
 
             if changed:
                 print('\n ...saving:', zip_file)
@@ -143,37 +143,6 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             writer.writerow(timing)
     print(timings)
 
-
-def test():
-    """Test the script.
-    
-    The base test data is kept in a non-zip extension to 
-    avoid accidentally altering its contents. On the test run,
-    test the data.
-    
-    """
-
-    zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
-    source_field = 'content'
-    preprocessing_log = '_preprocessing_log.csv'
-    wikifier_output_dir = 'wikifier'
-    skip_rerun = True
-
-    for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
-        try:
-            source = os.path.join(zip_dir_root, filename)
-            dest = os.path.join(zip_dir_root, filename + '.zip')
-            copyfile(source, dest)
-        except FileNotFoundError:
-            print("No such file:", source)
-            pass
-            
-    zip_batch_process(zip_dir_root=zip_dir_root,
-                      source_field=source_field,
-                      preprocessing_log=preprocessing_log,
-                      wikifier_output_dir=wikifier_output_dir,
-                      skip_rerun=skip_rerun
-                      )
 
 def main(args):
     """Collection of actions to execute on run."""
