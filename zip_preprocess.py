@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir='', skip_rerun=False):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='_preprocessing_log.csv', wikifier_output_dir='wikifier', skip_rerun=False):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -114,14 +114,14 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
             os.makedirs(pp.wikifier_output_dir, exist_ok=True)
             
-            with open(preprocessing_log, 'a') as preprocessing_log:
+            with open(preprocessing_log, 'a') as plogfile:
                 try:
                     pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
-                    preprocessing_log.write('done,' + zip_file + '\n')
+                    plogfile.write('done,' + zip_file + '\n')
                     changed = True
                 except KeyError as err:
                     print(err)
-                    preprocessing_log.write('fail,' + manifest_dir + ',' + str(err) + '\n')
+                    plogfile.write('fail,' + manifest_dir + ',' + str(err) + '\n')
 
             if changed:
                 print('\n ...saving:', zip_file)
