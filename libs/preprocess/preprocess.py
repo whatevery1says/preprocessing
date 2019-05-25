@@ -76,6 +76,8 @@ class Document:
             self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
         else:
             self.features = self.get_features()
+        output_dir = '' # Set the path to the wikifier's data folder here.
+        self.export_to_wikifier(manifest_dir, manifest_file, output_dir)
 
     def _remove_accents(self, text, method='unicode'):
         """Remove accents from any accented unicode characters in a string.
@@ -600,6 +602,17 @@ class Preprocessor:
         doc_end = time.time()
         doc_t = doc_end - doc_start
         print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
+
+        def export_to_wikifier(self, data_dir, manifest_name, output_dir=None):
+            """Save a copy of the content to the Wikifier text folder."""
+            filename = data_dir + '__' + manifest_name + '.txt'
+            output_filepath = os.path.join(output_dir, filename)
+            if output_dir is not None:
+                with open(output_filepath, 'w', encoding='utf-8') as wf:
+                    wf.write(self.doc_string)
+            else:
+                print('Warning! No path has been set exporting data for the Wikifier. This step will be ignored.')
+
 
 
 # def main(**kwargs):
