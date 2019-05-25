@@ -144,37 +144,6 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
     print(timings)
 
 
-def test():
-    """Test the script.
-    
-    The base test data is kept in a non-zip extension to 
-    avoid accidentally altering its contents. On the test run,
-    test the data.
-    
-    """
-
-    zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
-    source_field = 'content'
-    preprocessing_log = '_preprocessing_log.csv'
-    wikifier_output_dir = 'wikifier'
-    skip_rerun = True
-
-    for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
-        try:
-            source = os.path.join(zip_dir_root, filename)
-            dest = os.path.join(zip_dir_root, filename + '.zip')
-            copyfile(source, dest)
-        except FileNotFoundError:
-            print("No such file:", source)
-            pass
-            
-    zip_batch_process(zip_dir_root=zip_dir_root,
-                      source_field=source_field,
-                      preprocessing_log=preprocessing_log,
-                      wikifier_output_dir=wikifier_output_dir,
-                      skip_rerun=skip_rerun
-                      )
-
 def main(args):
     """Collection of actions to execute on run."""
     zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki, skip_rerun=args.skip)
