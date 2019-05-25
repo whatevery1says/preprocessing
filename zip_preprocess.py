@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log=''):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir=''):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -96,6 +96,10 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             else:
                 print('\n...no duplicates found.')
 
+            # create the wikifier output directory. setting the preprocessor wikifier_output_dir property activates outputting during the preprocess
+            pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
+            os.makedirs(pp.wikifier_output_dir, exist_ok=True)
+            
             with open(preprocessing_log, 'a') as preprocessing_log:
                 try:
                     pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content_scrubbed', kwargs=options)
@@ -150,7 +154,7 @@ def test():
 
 def main(args):
     """Collection of actions to execute on run."""
-    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log)
+    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki)
 
 
 if __name__ == '__main__':
@@ -163,6 +167,8 @@ if __name__ == '__main__':
                         help='output file path for log file, e.g. "_preprocessing_log.csv"')
     PARSER.add_argument('-c', '--content', default='content',
                         help='json file field for source, e.g. "content"')
+    PARSER.add_argument('-w', '--wiki', default='wikifier',
+                        help='output directory path for wikifier data, e.g. "wikifier"')
     # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
     # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
     # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')
