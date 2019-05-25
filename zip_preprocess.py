@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log=''):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -150,16 +150,19 @@ def test():
 
 def main(args):
     """Collection of actions to execute on run."""
+    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log)
 
-    # Configure the path to the preprocessing log here
-    preprocessing_log = '../preprocessing_log.csv'
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content', preprocessing_log=preprocessing_log)
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description=__doc__,
                                      usage='use "%(prog)s --help" for more information',
                                      formatter_class=argparse.RawTextHelpFormatter)
-    PARSER.add_argument('-i', '--inpath', default='.', help='input path for directory of zips, e.g. "../input"')
+    PARSER.add_argument('-i', '--inpath', default='.',
+                        help='input path for directory of zips, e.g. "../data"')
+    PARSER.add_argument('-l', '--log', default='_preprocessing_log.csv',
+                        help='output file path for log file, e.g. "_preprocessing_log.csv"')
+    PARSER.add_argument('-c', '--content', default='content',
+                        help='json file field for source, e.g. "content"')
     # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
     # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
     # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')
