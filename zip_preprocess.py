@@ -96,29 +96,12 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             else:
                 print('\n...no duplicates found.')
 
-            ##################
-            # RUN PREPROCESSOR
-            ##################
-            # I have refactored preprocess_dir into a class in
-            # libs/preprocess/preprocess.py Preprocessor.preprocess_dir.
-            #
-            # However, things were *really* complicated, with tons of
-            # global variables and state, including complex shared global
-            # dependencies with the Document class, so I'm not confident
-            # that this was done correctly -- it needs Scott to do a code
-            # review.
             with open(preprocessing_log, 'a') as preprocessing_log:
                 try:
                     pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content_scrubbed', kwargs=options)
                     preprocessing_log.write(manifest_dir + ',success\n')
                 except:
                     preprocessing_log.write(manifest_dir + ',fail\n')
-            # pp.preprocess_dir(manifest_dir=manifest_dir, content_property=source_field, kwargs=options)
-            # right now pre-processing can't indicate no change -- if it COULD
-            # then we could skip re-compressing and copying zips that
-            # don't need to be  updated. This would greatly increase performance
-            # time on subsequent runs to correct individual fields or add
-            # supplemental metadata to small batches of new files.
             changed = True
 
             if changed:
@@ -147,9 +130,10 @@ def test():
     
     The base test data is kept in a non-zip extension to 
     avoid accidentally altering its contents. On the test run,
-    the test data.
+    test the data.
     
     """
+
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
     for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
         try:
