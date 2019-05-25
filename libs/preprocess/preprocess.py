@@ -76,8 +76,8 @@ class Document:
             self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
         else:
             self.features = self.get_features()
-        output_dir = '' # Set the path to the wikifier's data folder here.
-        self.export_to_wikifier(manifest_dir, manifest_file, output_dir)
+        wikifier_output_dir = '' # Set the path to the wikifier's data folder here.
+        self.export_to_wikifier(manifest_dir, manifest_file, wikifier_output_dir)
 
     def _remove_accents(self, text, method='unicode'):
         """Remove accents from any accented unicode characters in a string.
