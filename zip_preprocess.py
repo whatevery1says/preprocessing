@@ -14,7 +14,7 @@ from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content'):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='', wikifier_output_dir='', skip_rerun=False):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
@@ -35,6 +35,16 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
         'collect_readability_scores': True
         }
 
+    skip_files = []
+    if(skip_rerun and preprocessing_log):
+        try:
+            with open(preprocessing_log, 'r') as plogfile:
+                reader = csv.reader(plogfile)
+                for row in reader:
+                    skip_files.append(row[1])
+        except FileNotFoundError as err:
+            print("Preprocessing log file not found, will create while logging.")
+
     # create a Preprocessor
     pp = Preprocessor()
     
@@ -43,6 +53,10 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
 
     # loop over zips and unpack for editing
     for zip_file in zip_files:
+        # skip
+        if(skip_rerun and zip_file in skip_files):
+            print("\n---\nSkipping:", zip_file)
+            continue
         print("\n---\nOpening:", zip_file)
         startZip = time.time()
         with ZipEditor(zip_file) as zed:
@@ -88,7 +102,7 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
                 # create delete list
                 lf.links = result_list
                 deletes_list = lf.filter_nodes(source='components', filter='remove')
-                print('dl', deletes_list)
+                # print('dl', deletes_list)
                 with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
                     for item in deletes_list:
                         delfile.write("%s\n" % item)
@@ -96,24 +110,18 @@ def zip_batch_process(zip_dir_root='', source_field='content'):
             else:
                 print('\n...no duplicates found.')
 
-            ##################
-            # RUN PREPROCESSOR
-            ##################
-            # I have refactored preprocess_dir into a class in
-            # libs/preprocess/preprocess.py Preprocessor.preprocess_dir.
-            #
-            # However, things were *really* complicated, with tons of
-            # global variables and state, including complex shared global
-            # dependencies with the Document class, so I'm not confident
-            # that this was done correctly -- it needs Scott to do a code
-            # review.
-            pp.preprocess_dir(manifest_dir=manifest_dir, content_property=source_field, kwargs=options)
-            # right now pre-processing can't indicate no change -- if it COULD
-            # then we could skip re-compressing and copying zips that
-            # don't need to be  updated. This would greatly increase performance
-            # time on subsequent runs to correct individual fields or add
-            # supplemental metadata to small batches of new files.
-            changed = True
+            # create the wikifier output directory. setting the preprocessor wikifier_output_dir property activates outputting during the preprocess
+            pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
+            os.makedirs(pp.wikifier_output_dir, exist_ok=True)
+            
+            with open(preprocessing_log, 'a') as preprocessing_log:
+                try:
+                    pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
+                    preprocessing_log.write('done,' + zip_file + '\n')
+                    changed = True
+                except KeyError as err:
+                    print(err)
+                    preprocessing_log.write('fail,' + manifest_dir + ',' + str(err) + '\n')
 
             if changed:
                 print('\n ...saving:', zip_file)
@@ -141,10 +149,16 @@ def test():
     
     The base test data is kept in a non-zip extension to 
     avoid accidentally altering its contents. On the test run,
-    the test data.
+    test the data.
     
     """
+
     zip_dir_root = os.path.join(os.getcwd(), 'data_zip')
+    source_field = 'content'
+    preprocessing_log = '_preprocessing_log.csv'
+    wikifier_output_dir = 'wikifier'
+    skip_rerun = True
+
     for filename in ['test.zip.BAK', 'test-reddit.zip.BAK']:
         try:
             source = os.path.join(zip_dir_root, filename)
@@ -153,20 +167,33 @@ def test():
         except FileNotFoundError:
             print("No such file:", source)
             pass
-    zip_batch_process(zip_dir_root=zip_dir_root, source_field='content')
-
+            
+    zip_batch_process(zip_dir_root=zip_dir_root,
+                      source_field=source_field,
+                      preprocessing_log=preprocessing_log,
+                      wikifier_output_dir=wikifier_output_dir,
+                      skip_rerun=skip_rerun
+                      )
 
 def main(args):
     """Collection of actions to execute on run."""
-    print('args.inpath:', args.inpath)
-    zip_batch_process(zip_dir_root=args.inpath, source_field='content')
+    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki, skip_rerun=args.skip)
 
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description=__doc__,
                                      usage='use "%(prog)s --help" for more information',
                                      formatter_class=argparse.RawTextHelpFormatter)
-    PARSER.add_argument('-i', '--inpath', default='.', help='input path for directory of zips, e.g. "../input"')
+    PARSER.add_argument('-i', '--inpath', default='.',
+                        help='input path for directory of zips, e.g. "../data"')
+    PARSER.add_argument('-l', '--log', default='_preprocessing_log.csv',
+                        help='output file path for log file, e.g. "_preprocessing_log.csv"')
+    PARSER.add_argument('-c', '--content', default='content',
+                        help='json file field for source, e.g. "content"')
+    PARSER.add_argument('-w', '--wiki', default='wikifier',
+                        help='output directory path for wikifier data, e.g. "wikifier"')
+    PARSER.add_argument('-s', '--skip', action='store_true',
+                        help='skip rerun of any files already listed in log, whether done or fail; false by default')
     # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
     # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
     # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')

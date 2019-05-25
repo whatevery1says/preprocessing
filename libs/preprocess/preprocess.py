@@ -65,6 +65,7 @@ class Document:
         """Initialize the object."""
         self.nlp = model
         self.manifest_filepath = os.path.join(manifest_dir, manifest_file)
+        self.content_property = content_property
         self.manifest_dict = self._read_manifest()
         self.doc_string = self.scrub(self._get_docstring(content_property))
         self.content = self.nlp(self.doc_string)
@@ -357,25 +358,36 @@ class Document:
                 self.manifest_dict[property] = json.loads(json_str)
                 f.write(json_str)
 
+    def export_content(self, output_dir=None):
+        """Save a copy of the content to the Wikifier text folder."""
+        filename = os.path.basename(self.manifest_filepath).rsplit('.json')[0] + '.txt'
+        output_filepath = os.path.join(output_dir, filename)
+        with open(output_filepath, 'w', encoding='utf-8') as wf:
+            wf.write(self._get_docstring(self.content_property))
+
+
 class Preprocessor:
     """Configure a preprocessor object."""
 
-    def __init__(self, model='en_core_web_sm', sources_csv=None):
+    def __init__(self, model='en_core_web_sm', sources_csv=None, wikifier_output_dir=''):
         """Initialize the preprocessor."""
 
+        # Save wikifier option
+        self.wikifier_output_dir = wikifier_output_dir
+
         # Load the language model
-        print('Preparing language model...')
+        # print('Preparing language model...')
         self.nlp = spacy.load(model)
 
         # Import readability
-        print('Testing readability...')
+        # print('Testing readability...')
         try:
             from spacy_readability import Readability
             self.collect_readability_scores = True
         except:
             msg = """The spacy-readability module is not installed on your system.
             Readability scores will be unavailable unless you `pip install spacy-_readability`."""
-            print(msg)
+            # print(msg)
             self.collect_readability_scores = False
             pass
         
@@ -530,7 +542,11 @@ class Preprocessor:
             print('Document failed:', filename)
             print(error)
             return False
-    
+        
+        # export the wikifier document if the directory is set
+        if self.wikifier_output_dir:
+            doc.export_content(output_dir=self.wikifier_output_dir)
+        
         # Remove manifest properties if the remove_properties list is submitted
         if remove_properties is not None:
             doc.remove_property(remove_properties, save=False)
@@ -599,7 +615,7 @@ class Preprocessor:
         # Print time to completion
         doc_end = time.time()
         doc_t = doc_end - doc_start
-        print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
+        # print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
 
 
 # def main(**kwargs):
