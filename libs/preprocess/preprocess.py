@@ -530,8 +530,9 @@ class Preprocessor:
         """
         self.preprocess(manifest_dir, filename, content_property, kwargs)
     
-    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None):
+    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None, ppversion='0.1'):
         """Start the main preprocessing function."""
+
         # Start doc timer
         doc_start = time.time()
     
@@ -542,6 +543,13 @@ class Preprocessor:
             print('Document failed:', filename)
             print(error)
             return False
+        
+        # short-circuit and skip if JSON was already processed by version
+        try:
+            if doc.manifest_dict['ppversion'] == ppversion:
+                return True
+        except KeyError:
+            doc.manifest_dict['ppversion'] = ppversion
         
         # export the wikifier document if the directory is set
         if self.wikifier_output_dir:
