@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os
+from shutil import copyfile
 from zip_preprocess import zip_batch_process
 
 def test():
@@ -19,7 +21,7 @@ def test():
 
     # 
     test_zips = ['test.zip.BAK']
-    for filename in [test_zips]:
+    for filename in test_zips:
         try:
             source = os.path.join(zip_dir_root, filename)
             dest = os.path.join(zip_dir_root, filename + '.zip')

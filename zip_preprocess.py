@@ -5,7 +5,6 @@ import argparse
 import sys
 import csv
 import json
-from shutil import copyfile
 import time
 import os
 
