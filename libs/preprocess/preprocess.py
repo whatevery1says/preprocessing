@@ -530,8 +530,9 @@ class Preprocessor:
         """
         self.preprocess(manifest_dir, filename, content_property, kwargs)
     
-    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None):
+    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None, ppversion='0.1'):
         """Start the main preprocessing function."""
+
         # Start doc timer
         doc_start = time.time()
     
@@ -543,9 +544,7 @@ class Preprocessor:
             print(error)
             return False
         
-        # set process version number
-        ppversion = 0.1
-        # short-circuit and skip if JSON already process version
+        # short-circuit and skip if JSON was already processed by version
         try:
             if doc.manifest_dict['ppversion'] == ppversion:
                 return True
