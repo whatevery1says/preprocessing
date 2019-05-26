@@ -5,7 +5,6 @@ import argparse
 import sys
 import csv
 import json
-from shutil import copyfile
 import time
 import os
 
@@ -92,7 +91,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             results = fhr.compare_files_in_dir(zed.getdir())
             result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
             if result_list:
-                print('\n...duplicates found:', result_list, '\n')
+                print('\n...duplicates found:', str(len(result_list)), '\n')
                 changed = True
                 with open(os.path.join(zed.getdir(),'_duplicates.txt'), "w") as dupefile:
                     writer = csv.writer(dupefile, dialect='excel-tab')
