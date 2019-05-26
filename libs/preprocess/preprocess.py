@@ -65,6 +65,7 @@ class Document:
         """Initialize the object."""
         self.nlp = model
         self.manifest_filepath = os.path.join(manifest_dir, manifest_file)
+        self.content_property = content_property
         self.manifest_dict = self._read_manifest()
         self.doc_string = self.scrub(self._get_docstring(content_property))
         self.content = self.nlp(self.doc_string)
@@ -76,8 +77,6 @@ class Document:
             self.features = self.deserialize(json.dumps(self.manifest_dict['features']))
         else:
             self.features = self.get_features()
-        wikifier_output_dir = '' # Set the path to the wikifier's data folder here.
-        self.export_to_wikifier(manifest_dir, manifest_file, wikifier_output_dir)
 
     def _remove_accents(self, text, method='unicode'):
         """Remove accents from any accented unicode characters in a string.
@@ -359,42 +358,41 @@ class Document:
                 self.manifest_dict[property] = json.loads(json_str)
                 f.write(json_str)
 
-    def export_to_wikifier(self, data_dir, manifest_name, output_dir=None):
+    def export_content(self, output_dir=None):
         """Save a copy of the content to the Wikifier text folder."""
-        doc_string = self.doc_string.replace('\[\.\]', '').replace('\\r\\n', '\n')
-        filename = data_dir + '__' + manifest_name.strip('.json') + '.txt'
-        # Use this code to save to a single directory
+        docstring = self._get_docstring(self.content_property).replace('\[\.\]', '').replace('\\r\\n', '\n')
+        filename = os.path.basename(self.manifest_filepath).rsplit('.json')[0] + '.txt'
         output_filepath = os.path.join(output_dir, filename)
         # Or use this for multiple directories
         # output_dir = os.path.join(output_dir, data_dir)
         # output_filepath = os.path.join(output_dir, filename)
         # if not os.path.exists(output_dir):
         #     os.makedirs(output_dir)
-        if output_dir is not None:
-            with open(output_filepath, 'w', encoding='utf-8') as wf:
-                wf.write(doc_string)
-        else:
-            print('Warning! No path has been set exporting data for the Wikifier. This step will be ignored.')
+        with open(output_filepath, 'w', encoding='utf-8') as wf:
+            wf.write(docstring)
 
 class Preprocessor:
     """Configure a preprocessor object."""
 
-    def __init__(self, model='en_core_web_sm', sources_csv=None):
+    def __init__(self, model='en_core_web_sm', sources_csv=None, wikifier_output_dir=''):
         """Initialize the preprocessor."""
 
+        # Save wikifier option
+        self.wikifier_output_dir = wikifier_output_dir
+
         # Load the language model
-        print('Preparing language model...')
+        # print('Preparing language model...')
         self.nlp = spacy.load(model)
 
         # Import readability
-        print('Testing readability...')
+        # print('Testing readability...')
         try:
             from spacy_readability import Readability
             self.collect_readability_scores = True
         except:
             msg = """The spacy-readability module is not installed on your system.
             Readability scores will be unavailable unless you `pip install spacy-_readability`."""
-            print(msg)
+            # print(msg)
             self.collect_readability_scores = False
             pass
         
@@ -537,8 +535,9 @@ class Preprocessor:
         """
         self.preprocess(manifest_dir, filename, content_property, kwargs)
     
-    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None):
+    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None, ppversion='0.1'):
         """Start the main preprocessing function."""
+
         # Start doc timer
         doc_start = time.time()
     
@@ -549,7 +548,18 @@ class Preprocessor:
             print('Document failed:', filename)
             print(error)
             return False
-    
+        
+        # short-circuit and skip if JSON was already processed by version
+        try:
+            if doc.manifest_dict['ppversion'] == ppversion:
+                return True
+        except KeyError:
+            doc.manifest_dict['ppversion'] = ppversion
+        
+        # export the wikifier document if the directory is set
+        if self.wikifier_output_dir:
+            doc.export_content(output_dir=self.wikifier_output_dir)
+        
         # Remove manifest properties if the remove_properties list is submitted
         if remove_properties is not None:
             doc.remove_property(remove_properties, save=False)
@@ -618,7 +628,7 @@ class Preprocessor:
         # Print time to completion
         doc_end = time.time()
         doc_t = doc_end - doc_start
-        print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
+        # print('Processed ' + doc.manifest_filepath + ' in ' + str(doc_t) + ' seconds.')
 
 
 # def main(**kwargs):
