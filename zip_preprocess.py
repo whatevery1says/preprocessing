@@ -9,6 +9,7 @@ import time
 import os
 
 from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
+from zipfile import BadZipFile
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.deduper.deduper import LinkFilter
@@ -60,7 +61,12 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
         startZip = time.time()
         with ZipEditor(zip_file) as zed:
             changed = False
-            zed.open()
+            try:
+                zed.open()
+            except BadZipFile as err:
+                print(err.__class__.__name__, ": ", zip_file, err)
+                continue
+            
             manifest_dir = zed.getdir()
 
             # get file list
