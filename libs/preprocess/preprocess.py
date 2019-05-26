@@ -361,11 +361,18 @@ class Document:
 
     def export_to_wikifier(self, data_dir, manifest_name, output_dir=None):
         """Save a copy of the content to the Wikifier text folder."""
+        doc_string = self.doc_string.replace('\[\.\]', '').replace('\\r\\n', '\n')
         filename = data_dir + '__' + manifest_name.strip('.json') + '.txt'
+        # Use this code to save to a single directory
         output_filepath = os.path.join(output_dir, filename)
+        # Or use this for multiple directories
+        # output_dir = os.path.join(output_dir, data_dir)
+        # output_filepath = os.path.join(output_dir, filename)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
         if output_dir is not None:
             with open(output_filepath, 'w', encoding='utf-8') as wf:
-                wf.write(self.doc_string)
+                wf.write(doc_string)
         else:
             print('Warning! No path has been set exporting data for the Wikifier. This step will be ignored.')
 
