@@ -82,7 +82,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     changed_scrub = content_field_standardize(data)
 
                     # request a hash add, record if it changed the file
-                    changed_hash = fhr.add_hash_to_json(data)
+                    changed_hash = fhr.add_hash_to_json(data, update_old=not skip_rerun)
                     
                     # modify file only if something changed
                     changed_file = changed_scrub or changed_hash
