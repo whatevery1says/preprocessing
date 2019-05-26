@@ -360,11 +360,16 @@ class Document:
 
     def export_content(self, output_dir=None):
         """Save a copy of the content to the Wikifier text folder."""
+        docstring = self._get_docstring(self.content_property).replace('\[\.\]', '').replace('\\r\\n', '\n')
         filename = os.path.basename(self.manifest_filepath).rsplit('.json')[0] + '.txt'
         output_filepath = os.path.join(output_dir, filename)
+        # Or use this for multiple directories
+        # output_dir = os.path.join(output_dir, data_dir)
+        # output_filepath = os.path.join(output_dir, filename)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
         with open(output_filepath, 'w', encoding='utf-8') as wf:
-            wf.write(self._get_docstring(self.content_property))
-
+            wf.write(docstring)
 
 class Preprocessor:
     """Configure a preprocessor object."""
@@ -530,8 +535,9 @@ class Preprocessor:
         """
         self.preprocess(manifest_dir, filename, content_property, kwargs)
     
-    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None):
+    def preprocess(self, manifest_dir, filename, content_property, kwargs=None, add_properties=None, remove_properties=None, ppversion='0.1'):
         """Start the main preprocessing function."""
+
         # Start doc timer
         doc_start = time.time()
     
@@ -542,6 +548,13 @@ class Preprocessor:
             print('Document failed:', filename)
             print(error)
             return False
+        
+        # short-circuit and skip if JSON was already processed by version
+        try:
+            if doc.manifest_dict['ppversion'] == ppversion:
+                return True
+        except KeyError:
+            doc.manifest_dict['ppversion'] = ppversion
         
         # export the wikifier document if the directory is set
         if self.wikifier_output_dir:
