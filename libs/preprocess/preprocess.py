@@ -543,6 +543,15 @@ class Preprocessor:
             print(error)
             return False
         
+        # set process version number
+        ppversion = 0.1
+        # short-circuit and skip if JSON already process version
+        try:
+            if doc.manifest_dict['ppversion'] == ppversion:
+                return True
+        except KeyError:
+            doc.manifest_dict['ppversion'] = ppversion
+        
         # export the wikifier document if the directory is set
         if self.wikifier_output_dir:
             doc.export_content(output_dir=self.wikifier_output_dir)
