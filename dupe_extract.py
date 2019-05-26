@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""zip_preprocess.py."""
+"""dupe_extract.py."""
 
 import argparse
 import io
@@ -12,7 +12,11 @@ from libs.zipeditor.zipeditor import zip_scanner
 
 
 def dupe_extract(zip_dir_root='', output_dir='dupe_inspect'):
-    """Copy."""
+    """Takes a directory of zips that has already been.
+    analyzed for duplicates. Copies out the duplicate pair
+    listings and example JSON files into an output directory
+    for inspection.
+    """
     # get list of all zips
     zip_files = zip_scanner(zip_dir_root)
     print(len(zip_files), 'zip files found')
@@ -25,6 +29,7 @@ def dupe_extract(zip_dir_root='', output_dir='dupe_inspect'):
     # loop over zips and unpack for editing
     for zip_file in zip_files:
         print("\n---\nOpening:", zip_file)
+
         with zipfile.ZipFile(zip_file, 'r') as zfile:
             # create per-zip output subdirectory for duplicate json examples
             zip_output_dir = os.path.join(output_dir, os.path.basename(zip_file).rsplit('.zip')[0])
@@ -50,11 +55,12 @@ def dupe_extract(zip_dir_root='', output_dir='dupe_inspect'):
                 zfile.extract(zdupe_row[1].strip(), path=zip_output_dir, pwd=None)
                 zfile.extract(zdupe_row[2].strip(), path=zip_output_dir, pwd=None)
 
-
+    # save combined duplicate pairs
     with open(os.path.join(output_dir,'_duplicates_all.txt'), "w") as dupefile:
         for dupe in dupes_all:
             dupefile.write(dupe)
 
+    # save combined delete recommendations
     with open(os.path.join(output_dir,'_deletes_all.txt'), "w") as delfile:
         for delete in deletes_all:
             delfile.write(delete)
