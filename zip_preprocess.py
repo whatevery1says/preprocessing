@@ -63,7 +63,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             changed = False
             try:
                 zed.open()
-            except (BadZipFile, PermissionError) as err:
+            except (BadZipFile, PermissionError, RuntimeError) as err:
                 print(err.__class__.__name__, ": ", zip_file, err)
                 with open(preprocessing_log, 'a') as plogfile:
                     plogfile.write('zip_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
@@ -128,7 +128,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     changed = True
                     if changed:
                         print('\n ...saving:', zip_file)
-                            zed.save()
+                        zed.save()
                 except (KeyError, PermissionError, ValueError) as err:
                     print(err)
                     plogfile.write('fail,' + manifest_dir + ',' + str(err) + '\n')
