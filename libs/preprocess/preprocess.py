@@ -374,7 +374,7 @@ class Document:
 class Preprocessor:
     """Configure a preprocessor object."""
 
-    def __init__(self, model='en_core_web_sm', sources_csv=None, wikifier_output_dir=''):
+    def __init__(self, model='en_core_web_sm', sources_csv=None, wikifier_output_dir='', max_length=3000000):
         """Initialize the preprocessor."""
 
         # Save wikifier option
@@ -383,6 +383,7 @@ class Preprocessor:
         # Load the language model
         # print('Preparing language model...')
         self.nlp = spacy.load(model)
+        self.nlp.max_length = max_length
 
         # Import readability
         # print('Testing readability...')
