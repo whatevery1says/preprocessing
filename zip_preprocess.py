@@ -126,13 +126,13 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
                     plogfile.write('done,' + zip_file + '\n')
                     changed = True
+                    if changed:
+                        print('\n ...saving:', zip_file)
+                            zed.save()
                 except (KeyError, PermissionError, ValueError) as err:
                     print(err)
                     plogfile.write('fail,' + manifest_dir + ',' + str(err) + '\n')
 
-            if changed:
-                print('\n ...saving:', zip_file)
-                zed.save()
             print('\n...closing:', zip_file, '\n\n')
 
         endZip = time.time()
