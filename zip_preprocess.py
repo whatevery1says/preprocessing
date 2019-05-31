@@ -131,7 +131,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                         zed.save()
                 except (KeyError, PermissionError, ValueError) as err:
                     print(err)
-                    plogfile.write('fail,' + manifest_dir + ',' + str(err) + '\n')
+                    plogfile.write('fail,' + zip_file + ',' + str(err) + '\n')
 
             print('\n...closing:', zip_file, '\n\n')
 
