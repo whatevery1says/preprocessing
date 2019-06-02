@@ -78,13 +78,17 @@ class FuzzyHasher:
         hash_by_file = {}
         for path in paths:
             with open(path, 'r') as file:
-                hash_string = json.load(file)['content-hash-ssdeep']
-                # Get chunksize, chunk, double_chunk
-                chunksize, _, _ = hash_string.split(':')
-                if chunksize not in hash_by_file:
-                    hash_by_file[chunksize] = {}
-                hash_by_file[chunksize][hash_string] = path
-                # print(chunksize, chunk, path)
+                try:
+                    hash_string = json.load(file)['content-hash-ssdeep']
+                    # Get chunksize, chunk, double_chunk
+                    chunksize, _, _ = hash_string.split(':')
+                    if chunksize not in hash_by_file:
+                        hash_by_file[chunksize] = {}
+                    hash_by_file[chunksize][hash_string] = path
+                    # print(chunksize, chunk, path)
+                except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
+                    # silently skip invalid json from comparison list
+                    continue
         # print(hash_by_file)
         
         for chunksize, hash_list in hash_by_file.items():
