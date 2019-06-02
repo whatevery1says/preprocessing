@@ -509,14 +509,13 @@ class Preprocessor:
         # Start the timer
         start = time.time()
         # Walk the directory and preprocess each file
-        all_files = [os.path.join(r, file) for r, d, f in os.walk(manifest_dir) for file in f]
+        all_files = [os.path.join(r, file) for r, d, f in os.walk(manifest_dir) for file in f if file.endswith('.json') and not file.startswith('._')]
         for file in all_files:
-            if file.endswith('.json') and not file.startswith('._'):
-                file = file.replace('\\', '/') # Handle Windows paths
-                tmp = file.split('/')
-                path = '/'.join(tmp[:-1])
-                filename = tmp[-1]
-                self.preprocess(path, filename, content_property, kwargs=None)
+            file = file.replace('\\', '/') # Handle Windows paths
+            tmp = file.split('/')
+            path = '/'.join(tmp[:-1])
+            filename = tmp[-1]
+            self.preprocess(path, filename, content_property, kwargs=None)
         # Print time to completion
         end = time.time()
         t = end - start
@@ -545,9 +544,8 @@ class Preprocessor:
         # Initialise the Document object
         try: 
             doc = Document(manifest_dir, filename, content_property=content_property, model=self.nlp, kwargs=kwargs)
-        except UnicodeDecodeError as error:
-            print('Document failed:', filename)
-            print(error)
+        except UnicodeDecodeError as err:
+            print('Document failed:', filename, ':', err)
             return False
         
         # short-circuit and skip if JSON was already processed by version
