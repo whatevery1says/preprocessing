@@ -72,7 +72,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             manifest_dir = zed.getdir()
 
             # get file list
-            json_files = [entry.path for entry in os.scandir(manifest_dir) if entry.path.endswith(".json")]
+            json_files = [os.path.join(r, file) for r, d, f in os.walk(manifest_dir) for file in f if file.endswith('.json') and not file.startswith('._')]
             print(len(json_files), 'json files found')
 
             # loop through json files for fixes and fuzzy hash
