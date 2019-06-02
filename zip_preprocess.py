@@ -78,7 +78,13 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             # loop through json files for fixes and fuzzy hash
             for json_file in json_files:
                 with open(json_file, 'r+') as f:
-                    data = json.load(f)
+                    try:
+                        data = json.load(f)
+                    except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
+                        with open(preprocessing_log, 'a') as plogfile:
+                            # with @ the entry will not cause zip skipping
+                            plogfile.write('json_fail,' + zip_file + '@' + json_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
+                        continue
 
                     # fix for non-standard content fields
                     changed_scrub = content_field_standardize(data)
@@ -129,9 +135,9 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     if changed:
                         print('\n ...saving:', zip_file)
                         zed.save()
-                except (KeyError, PermissionError, ValueError) as err:
+                except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
                     print(err)
-                    plogfile.write('fail,' + zip_file + ',' + str(err) + '\n')
+                    plogfile.write('preprocess_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
 
             print('\n...closing:', zip_file, '\n\n')
 
