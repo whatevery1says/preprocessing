@@ -101,27 +101,32 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                         # mark zip for saving if any file changed
                         changed = True
 
-            # deduplicate
-            results = fhr.compare_files_in_dir(zed.getdir())
-            result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
-            if result_list:
-                print('\n...duplicates found:', str(len(result_list)), '\n')
-                changed = True
-                with open(os.path.join(zed.getdir(),'_duplicates.txt'), "w") as dupefile:
-                    writer = csv.writer(dupefile, dialect='excel-tab')
-                    for result in result_list:
-                        writer.writerow(result)
-                
-                # create delete list
-                lf.links = result_list
-                deletes_list = lf.filter_nodes(source='components', filter='remove')
-                # print('dl', deletes_list)
-                with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
-                    for item in deletes_list:
-                        delfile.write("%s\n" % item)
-            
-            else:
-                print('\n...no duplicates found.')
+            try:
+                # deduplicate
+                results = fhr.compare_files_in_dir(zed.getdir())
+                result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
+                if result_list:
+                    print('\n...duplicates found:', str(len(result_list)), '\n')
+                    changed = True
+                    with open(os.path.join(zed.getdir(),'_duplicates.txt'), "w") as dupefile:
+                        writer = csv.writer(dupefile, dialect='excel-tab')
+                        for result in result_list:
+                            writer.writerow(result)
+                    
+                    # create delete list
+                    lf.links = result_list
+                    deletes_list = lf.filter_nodes(source='components', filter='remove')
+                    # print('dl', deletes_list)
+                    with open(os.path.join(zed.getdir(),'_deletes.txt'), "w") as delfile:
+                        for item in deletes_list:
+                            delfile.write("%s\n" % item)
+                else:
+                    print('\n...no duplicates found.')
+            except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
+                with open(preprocessing_log, 'a') as plogfile:
+                    # with @ the entry will not cause zip skipping
+                    plogfile.write('deduplicate_fail,' + '@' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
+                continue
 
             # create the wikifier output directory. setting the preprocessor wikifier_output_dir property activates outputting during the preprocess
             pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
