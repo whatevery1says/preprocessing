@@ -20,8 +20,8 @@ from json import JSONDecodeError
 from zipfile import ZipFile, BadZipFile
 
 # Configuration
-zip_dir = 'data_zip'
-log_file = 'data_zip_bk/test_log.csv'
+zip_dir = ''
+log_file = 'log.csv'
 
 # Functions
 def get_file_list(zip_file, check='odd'):
@@ -41,14 +41,8 @@ def read_file(zip_file, file):
     try:
         with zip.open(file) as f:
             return json.loads(f.read())
-    except JSONDecodeError:
-        log_errors(log_file, zip_file, file, 'JSONDecodeError')
-        return {}
-    except UnicodeDecodeError:
-        log_errors(log_file, zip_file, file, 'UnicodeDecodeError')
-        return {}
-    except RuntimeError:
-        log_errors(log_file, zip_file, file, 'RuntimeError')
+    except (BadZipFile, JSONDecodeError, UnicodeDecodeError, PermissionError, RuntimeError) as err:
+        log_errors(log_file, zip_file, file, err)
         return {}
 
 def test(doc):
@@ -77,7 +71,7 @@ def test(doc):
 def log_errors(log_file, zip, file, result):
     """Write errors to the test log file."""
     with open(log_file, 'a') as f:
-        f.write(zip + ',' + file + ',' + str(result) + '\n')
+        f.write(zipdir + '/' + zip + ',' + file + ',' + str(result) + '\n')
 
 
 # Iterate through the zip archives in the directory
