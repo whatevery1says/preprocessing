@@ -22,7 +22,7 @@ log_file = ''
 
 # Functions
 def get_file_list(zip_file, check='odd'):
-    """ Returns a list of odd or even numbered files in the zip archive."""
+    """Return a list of odd or even numbered files in the zip archive."""
     zip = ZipFile(zip_file)
     json_files = zip.namelist()
     if check == 'even':
@@ -32,10 +32,16 @@ def get_file_list(zip_file, check='odd'):
     return json_files
 
 def read_file(zip, file):
+    """Read a json file and return a Python dict."""
     with zip.open(file) as f:
-        doc = json.loads(f.read())
+        return json.loads(f.read())
 
 def test(doc):
+    """Test a json file for required properties.
+
+    Returns a list of missing properties.
+
+    """
     errors = []
     manifest_properties = ['name', 'namespace', 'metapath', 'title']
     preprocessing_properties = ['features', 'bag_of_words', 'word_count', 'readability_scores', 'language_model']
@@ -54,7 +60,7 @@ def test(doc):
     return errors
 
 def log_errors(log_file, zip, file, result):
-    """Write errors to the test log file"""
+    """Write errors to the test log file."""
     with open(log_file, 'a') as f:
         f.write(zip + ',' + file + ',' + str(result))
 
