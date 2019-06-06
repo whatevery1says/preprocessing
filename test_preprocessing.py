@@ -4,24 +4,15 @@ Tests odd or even numbered json files in zip archives in a
 directory to see if they contain required properties. The 
 script does not test whether the preprocessor has sent 
 outputs to the wikifier.
-
-Development Notes:
-
-- The log file should probably append the zip_dir to the 
-zipfile name.
-- Configuration should probably be changed to run through the
-command line.
 """
 
 # Python imports
+import argparse
 import json
 import os
+import sys
 from json import JSONDecodeError
 from zipfile import ZipFile, BadZipFile
-
-# Configuration
-zip_dir = ''
-log_file = 'log.csv'
 
 # Functions
 def get_file_list(zip_file, check='odd'):
@@ -35,14 +26,14 @@ def get_file_list(zip_file, check='odd'):
         json_files = [file for i, file in enumerate(json_files) if i % 2 is not 0]
     return json_files
 
-def read_file(zip_file, file):
+def read_file(zip_dir, zip_file, file, log_file):
     """Read a json file and return a Python dict."""
     zip = ZipFile(os.path.join(zip_dir, zip_file))
     try:
         with zip.open(file) as f:
             return json.loads(f.read())
     except (BadZipFile, JSONDecodeError, UnicodeDecodeError, PermissionError, RuntimeError) as err:
-        log_errors(log_file, zip_file, file, err)
+        log_errors(log_file, zip_dir, zip_file, file, err)
         return {}
 
 def test(doc):
@@ -68,26 +59,49 @@ def test(doc):
             errors.append(prop)
     return errors
 
-def log_errors(log_file, zip, file, result):
+def log_errors(log_file, zip_dir, zip, file, result):
     """Write errors to the test log file."""
     with open(log_file, 'a') as f:
-        f.write(zipdir + '/' + zip + ',' + file + ',' + str(result) + '\n')
+        f.write(zip_dir + '/' + zip + ',' + file + ',' + str(result) + '\n')
+
+def main(args):
+    """Execute on run."""
+    zip_dir = args.zip_dir
+    log_file = args.log_file
+    check = args.check
+
+    # Iterate through the zip archives in the directory
+    zip_files = [file for file in os.listdir(zip_dir) if file.endswith('.zip')]
+    for zip_file in zip_files:
+        # Get a list of even or odd files in the zip archive
+        try:
+            # testzip = ZipFile(os.path.join(zip_dir, zip_file))
+            json_file_list = get_file_list(os.path.join(zip_dir, zip_file), check)
+            # Iterate through the json files in the list
+            for file in json_file_list:
+                # Read the json and perform test
+                doc = read_file(zip_dir, zip_file, file, log_file)
+                result = test(doc)
+                # Log any errors
+                if len(result) > 0:
+                    log_errors(log_file, zip_dir, zip_file, file, result)
+        except BadZipFile as err:
+            log_errors(log_file, zip_dir, zip_file, '', err)
+            pass
 
 
-# Iterate through the zip archives in the directory
-for zip_file in os.listdir(zip_dir):
-    # Get a list of even or odd files in the zip archive
-    try:
-        # testzip = ZipFile(os.path.join(zip_dir, zip_file))
-        json_file_list = get_file_list(os.path.join(zip_dir, zip_file), 'odd')
-        # Iterate through the json files in the list
-        for file in json_file_list:
-            # Read the json and perform test
-            doc = read_file(zip_file, file)
-            result = test(doc)
-            # Log any errors
-            if len(result) > 0:
-                log_errors(log_file, zip_file, file, result)
-    except BadZipFile:
-        log_errors(log_file, zip_file, '', 'BadZipFile')
-        pass
+if __name__ == '__main__':
+    PARSER = argparse.ArgumentParser(description=__doc__,
+                                     usage='use "%(prog)s --help" for more information',
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    PARSER.add_argument('-z', '--zip_dir', default='.',
+                        help='input path for directory of zips, e.g. "../data"')
+    PARSER.add_argument('-l', '--log_file', default='_log.csv',
+                        help='output file path for log file, e.g. "_test_preprocessing_log.csv"')
+    PARSER.add_argument('-c', '--check', default='odd',
+                        help='setting for whether to check "even" or "odd" json files in each zip archive"')
+    if not sys.argv[1:]:
+        PARSER.print_help()
+        PARSER.exit()
+    ARGS = PARSER.parse_args()
+    main(ARGS)
