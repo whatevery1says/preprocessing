@@ -1,2 +1,0 @@
-179.17048716545105	/Users/jeremydouglass/git/preprocessing/data_zip/test.zip
-179.83671879768372	TOTAL
