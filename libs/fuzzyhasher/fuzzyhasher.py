@@ -99,11 +99,19 @@ class FuzzyHasher:
                 if score > 63:
                     yield (score, a[1], b[1])
 
-    def compare_files_in_dir(self, source_path='data'):
-        """Compare the files in the directory."""
-        files = [entry.path for entry in os.scandir(source_path) if entry.path.endswith(".json")]
-        return self.compare_files(files)
-
+def compare_files_in_dir(self, source_path='data'):
+    """Compare the files in the directory."""
+    files = [entry.path for entry in os.scandir(source_path) if entry.path.endswith(".json")]
+    errors = []
+    for file in files:
+	    with open(path, 'r') as file:
+	        try:
+	            hash_string = json.load(file)['content-hash-ssdeep']
+	        except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
+	            errors.append(err)
+	            continue
+    files = [file for file in files if file not in errors]
+    return self.compare_files(files), errors
 
     def hash(self, instring):
         """Hash the string."""

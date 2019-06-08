@@ -103,7 +103,11 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
             try:
                 # deduplicate
-                results = fhr.compare_files_in_dir(zed.getdir())
+                results, errors = fhr.compare_files_in_dir(zed.getdir())
+                # log any invalid json files before proceeding
+                with open(preprocessing_log, 'a') as plogfile:
+                    for error in errors:
+                        plogfile.write('zip_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
                 result_list = [[str(item).replace(zed.getdir()+'/','') for item in row] for row in results]
                 if result_list:
                     print('\n...duplicates found:', str(len(result_list)), '\n')
