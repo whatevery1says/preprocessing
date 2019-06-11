@@ -1,0 +1,3 @@
+[x]  back up the two rsync scripts to preprocessing repo
+-  review scott's error message change
+-  test and add the import setup to preprocessing so that the commandline script and notebooks can both use it
