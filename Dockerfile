@@ -83,8 +83,8 @@ RUN chown -R 1000:100 /home/jovyan/utils
 COPY --chown=1000:100 . /home/jovyan/utils/preprocessing
 
 # Approach 2: create a git repo, for a commit sandbox
-WORKDIR /home/jovyan/utils/preprocessing-git
-RUN chown -R 1000:100 /home/jovyan/utils/preprocessing-git
+WORKDIR /home/jovyan/utils/preprocessing_git
+RUN chown -R 1000:100 /home/jovyan/utils/preprocessing_git
 USER $NB_UID
 # git clone manual cache-buster, use to bust cache
 # even though changes in git clone cannot be detected
