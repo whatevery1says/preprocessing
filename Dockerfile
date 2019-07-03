@@ -98,5 +98,13 @@ RUN git clone -b clean https://github.com/whatevery1says/preprocessing.git .
 USER $NB_UID
 RUN pip install -r requirements.txt
 
+###################
+#  CONFIGURATION  #
+###################
+
+USER root
+RUN sed -i s/MEMORY=1g/MEMORY=24g/g /home/jovyan/mallet-2.0.8/bin/mallet
+
+USER $NB_UID
 WORKDIR /home/jovyan
 # ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--allow-root"]
