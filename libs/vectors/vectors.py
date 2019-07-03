@@ -21,46 +21,56 @@ SIMPLE_URL_RE = re.compile(r'''^https?://''')
 class Vectors:
     """Configure a vectors object."""
 
-    def __init__(self, index, manifest_path, vectors_path, model='en_core_web_sm', stoplist='we1s_standard_stoplist.txt'):
+    def __init__(self, index, manifest_path, vectors_path, model='en_core_web_sm', stoplist='we1s_standard_stoplist.txt', log_file='log.txt'):
         """Initialize the class.
         
         Note: The default model should be changed to 'en_core_web_lg'
         in the production environment.
 
         """
+        self.log = ''
         # Get stoplist
         with open(stoplist, 'r', encoding='utf-8') as f:
             self.stoplist = f.read().split('\n')
         # Read the manifest
-        self.manifest = self.read_manifest(manifest_path)
-        # Get the index and filename
-        self.index = str(index)
-        self.filename = self.manifest['name'] + '.json'
-        # Get the Bag of Words
-        if 'bag_of_words' in self.manifest:
-            self.bag = self.manifest['bag_of_words']
-        elif 'features' in self.manifest:
-            self.tokens = [feature[0] for feature in self.manifest['features'][1:]]
-            self.bag = self.bagify()
-        else:
-            # Load the language model with custom tokenizer and entity merger
-            self.nlp = spacy.load(model)
-            self.nlp.tokenizer = self.custom_tokenizer()
-            self.nlp.add_pipe(self.skip_ents, after='ner')
-            # Create a spaCy document, extract tokens, then bagify
-            self.doc = self.nlp(self.manifest['content'])
-            self.tokens = self.get_tokens()
-            self.bag = self.bagify()
-        # Create a row of vectors and save it to the vectors file
-        # self.vectors = self.get_vectors()
-        self.vector_sequence = self.get_vector_sequence()
-        self.vectors_path = vectors_path
-        # self.save()
+        try:
+            self.manifest = self.read_manifest(manifest_path)
+            # Get the index and filename
+            self.index = str(index)
+            self.filename = self.manifest['name'] + '.json'
+            # Get the Bag of Words
+            if 'bag_of_words' in self.manifest:
+                self.bag = self.manifest['bag_of_words']
+            elif 'features' in self.manifest:
+                self.tokens = [feature[0] for feature in self.manifest['features'][1:]]
+                self.bag = self.bagify()
+            else:
+                # Load the language model with custom tokenizer and entity merger
+                self.nlp = spacy.load(model)
+                self.nlp.tokenizer = self.custom_tokenizer()
+                self.nlp.add_pipe(self.skip_ents, after='ner')
+                # Create a spaCy document, extract tokens, then bagify
+                self.doc = self.nlp(self.manifest['content'])
+                self.tokens = self.get_tokens()
+                self.bag = self.bagify()
+            # Create a row of vectors and save it to the vectors file
+            # self.vectors = self.get_vectors()
+            self.vector_sequence = self.get_vector_sequence()
+            self.vectors_path = vectors_path
+            # self.save()
+        except RuntimeError:
+            pass
+        if self.log is not '':
+            with open(log_file, 'a') as f:
+                f.write(self.log)
 
     def read_manifest(self, filepath):
         """Read the manifest file."""
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.loads(f.read())
+        try:
+            with open(filepath, 'rb') as f:
+                return json.loads(f.read())
+        except IOError:
+            self.log += manifest_path + ',Could not read file.\n'
 
     def custom_tokenizer(self):
         """Add custom tokenizer settings."""
@@ -136,6 +146,7 @@ class Vectors:
                     pass
         return row.strip()
 
+
     def get_vector_sequence(self, strip_stopwords=True):
         """Convert a dictionary bag of words to a sequence of terms based on term counts.
         
@@ -153,6 +164,7 @@ class Vectors:
                     row += terms
                 elif strip_stopwords == True and k not in self.stoplist:
                     term = k.replace(' ', '_') + ' '
+                    term = re.sub('the_|a_|an_', '', term)
                     terms = (term * v)
                     row += terms
                 else:
@@ -165,7 +177,7 @@ class Vectors:
             f.write(self.vector_sequence.strip() + '\n')
 
 
-def vectorize_dir(json_directory, vectors_file, model, stoplist):
+def vectorize_dir(json_directory, vectors_file, model, stoplist, log_file):
     """Vectorize a directory of json manifests.
 
     Sample usage:
@@ -173,6 +185,7 @@ def vectorize_dir(json_directory, vectors_file, model, stoplist):
                   'model/vectors.txt',
                   'en_core_web_lg',
                   stoplist='libs/vectors/we1s_standard_stoplist.txt'
+                  logfile='libs/vectors/log.txt;
                   )
 
     """
