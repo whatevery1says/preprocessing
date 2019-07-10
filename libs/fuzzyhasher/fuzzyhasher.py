@@ -84,7 +84,7 @@ class FuzzyHasher:
                     chunksize, _, _ = hash_string.split(':')
                     if chunksize not in hash_by_file:
                         hash_by_file[chunksize] = {}
-                    hash_by_file[chunksize][hash_string] = path
+                    hash_by_file[chunksize][path] = hash_string
                     # print(chunksize, chunk, path)
                 except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
                     # silently skip invalid json from comparison list
@@ -95,9 +95,9 @@ class FuzzyHasher:
             # print("\ncomparing chunksize:", chunksize, ":", len(hash_list), "examples")
             chunk_pairs = itertools.combinations([hash_entry for hash_entry in hash_list.items()], 2)
             for a, b in chunk_pairs:
-                score = self.compare(a[0], b[0])
+                score = self.compare(a[1], b[1])
                 if score > 63:
-                    yield (score, a[1], b[1])
+                    yield (score, a[0], b[0])
 
     def compare_files_in_dir(self, source_path='data'):
         """Compare the files in the directory."""
