@@ -128,21 +128,22 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
                     plogfile.write('deduplicate_fail,' + '@' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
                 continue
 
-            # create the wikifier output directory. setting the preprocessor wikifier_output_dir property activates outputting during the preprocess
-            pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
-            os.makedirs(pp.wikifier_output_dir, exist_ok=True)
-            
-            with open(preprocessing_log, 'a') as plogfile:
-                try:
-                    pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
-                    plogfile.write('done,' + zip_file + '\n')
-                    changed = True
-                    if changed:
-                        print('\n ...saving:', zip_file)
-                        zed.save()
-                except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
-                    print(err)
-                    plogfile.write('preprocess_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
+            # # create the wikifier output directory. setting the preprocessor wikifier_output_dir property activates outputting during the preprocess
+            # pp.wikifier_output_dir = os.path.join(wikifier_output_dir, os.path.basename(zed.file).rsplit('.zip')[0])
+            # os.makedirs(pp.wikifier_output_dir, exist_ok=True)
+            #
+            # with open(preprocessing_log, 'a') as plogfile:
+            #     try:
+            #         pp.preprocess_dir(manifest_dir=manifest_dir, content_property='content', kwargs=options)
+            #         plogfile.write('done,' + zip_file + '\n')
+            #         changed = True
+            #     except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
+            #         print(err)
+            #         plogfile.write('preprocess_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
+
+            if changed:
+                print('\n ...saving:', zip_file)
+                zed.save()
 
             print('\n...closing:', zip_file, '\n\n')
 
