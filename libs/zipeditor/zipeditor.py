@@ -11,6 +11,24 @@ def zip_scanner(source_path=''):
         source_path = os.getcwd()
     return [entry.path for entry in os.scandir(source_path) if entry.path.endswith(".zip")]
 
+def zip_scanner_excludedirs(source_path='.', exclude_list=[''], join=True):
+    """Given a source path, walks all subdirectories
+    (except those occuring in an exclude list)
+    and compiles a list of all zip files found.
+    Returns a list of either relative path+filename or
+    path,filename tuples."""
+                            
+    results=[]
+    for root, dirs, files in os.walk(source_path, topdown=True):
+        dirs[:] = [d for d in dirs if d not in exclude] # https://stackoverflow.com/questions/19859840/excluding-directori$
+        for filename in files:
+            if filename.endswith('.zip') and not filename.startswith('._') and not filename.startswith('_'):
+                if join:
+                    results.append(os.path.join(root, filename))
+                else:
+                    results.append((root,filename))
+    return results
+
 class ZipEditor:
     """Provide an editing context for a ZIP file.
     
