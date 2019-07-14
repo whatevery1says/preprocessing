@@ -565,7 +565,7 @@ class Preprocessor:
     
         # Sort and serialise the features table
         features = doc.get_features()
-        features.sort_values(by=['TOKEN'], inplace=True)
+        # features.sort_values(by=['TOKEN'], inplace=True)
         features_list = json.loads(pd.DataFrame.to_json(features, orient='values'))
         features_list.insert(0, list(features.columns))
         doc.manifest_dict['features'] = features_list
