@@ -3,6 +3,7 @@
 
 import argparse
 import io
+import json
 import sys
 import csv
 import os
@@ -48,7 +49,28 @@ def dupe_extract(zip_dir_root='', output_dir='dupe_inspect'):
                     zdupe_row = zdupe_row.split('\t')
                     zfile.extract(zdupe_row[1].strip(), path=zip_output_dir, pwd=None)
                     zfile.extract(zdupe_row[2].strip(), path=zip_output_dir, pwd=None)
-            
+
+                print(len(zfile_dupes))
+                # ...and generate a report file with snippets
+                with open(os.path.join(zip_output_dir,'_duplicates_report.txt'), "w") as dupereport:
+                    writer = csv.writer(dupereport, dialect='excel-tab')
+                    for zdupe_row in zfile_dupes:
+                        zdupe_row = zdupe_row.split('\t')
+                        zdupe_row[-1]=zdupe_row[-1].strip()
+                        writer.writerow(zdupe_row)
+                        def sample(f, width1, width2):
+                            jcontent = json.loads(f.read())['content_scrubbed']
+                            result = []
+                            result.append(' '.join(jcontent[0:width1].split()).ljust(width1))
+                            result.append('')
+                            result.append(' '.join(jcontent[-width2:].split()).rjust(width2))
+                            writer.writerow(result)
+                        with open(os.path.join(zip_output_dir, zdupe_row[1].strip()), 'r', encoding='utf-8') as f:
+                            sample(f, 40, 20)
+                        with open(os.path.join(zip_output_dir, zdupe_row[2].strip()), 'r', encoding='utf-8') as f:
+                            sample(f, 40, 20)
+                        writer.writerow('')
+
                 # deletes
                 zfile_deletes = io.TextIOWrapper(zfile.open('_deletes.txt', 'r')).readlines()
                 print(' ...copying delete recommendations')
