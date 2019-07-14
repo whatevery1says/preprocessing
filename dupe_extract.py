@@ -31,14 +31,15 @@ def dupe_extract(zip_dir_root='', output_dir='dupe_inspect'):
         print("\n---\nOpening:", zip_file)
         try:
             with zipfile.ZipFile(zip_file, 'r') as zfile:
-                # create per-zip output subdirectory for duplicate json examples
-                zip_output_dir = os.path.join(output_dir, os.path.basename(zip_file).rsplit('.zip')[0])
-                os.makedirs(zip_output_dir, exist_ok=True)
-            
                 # duplicates
                 zfile_dupes = io.TextIOWrapper(zfile.open('_duplicates.txt', 'r')).readlines()
                 print(' ...copying ', len(zfile_dupes), 'duplicate pairs')
                 dupes_all.extend(zfile_dupes)
+
+                # create per-zip output subdirectory for duplicate json examples
+                zip_output_dir = os.path.join(output_dir, os.path.basename(zip_file).rsplit('.zip')[0])
+                os.makedirs(zip_output_dir, exist_ok=True)
+
                 zfile.extract('_duplicates.txt', path=zip_output_dir, pwd=None)
 
                 # examples -- copy duplicate json examples to subdirectory
