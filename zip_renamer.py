@@ -85,7 +85,7 @@ exclude_list = set(['preprocess-fails'])
 #                '_password.' : '_XX-password.',
 #              }
 with open('_rename_list.txt') as f:
-    rename_list = dict([line.split() for line in f])
+    rename_list = dict([line.split("\t") for line in f])
 print('\nRENAME LIST\n', rename_list, '\n')
 
 batch_rename_zip_with_jsons(source_path=source_path,
