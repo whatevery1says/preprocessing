@@ -20,7 +20,8 @@ def zip_scanner_excludedirs(source_path='.', exclude_list=[''], join=True):
                             
     results=[]
     for root, dirs, files in os.walk(source_path, topdown=True):
-        dirs[:] = [d for d in dirs if d not in exclude] # https://stackoverflow.com/questions/19859840/excluding-directori$
+        # https://stackoverflow.com/questions/19859840/excluding-directori
+        dirs[:] = [d for d in dirs if d not in exclude_list]
         for filename in files:
             if filename.endswith('.zip') and not filename.startswith('._') and not filename.startswith('_'):
                 if join:
