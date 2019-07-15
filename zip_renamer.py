@@ -41,6 +41,8 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
     dt = datetime.today().strftime('%Y%m%d-%H%M')
     
     zip_file = os.path.join(path, zipname)
+    zipname_noext = os.path.splitext(zipname)[0]
+
     with ZipEditor(zip_file) as zed:
         try:
             zed.open()
@@ -51,8 +53,13 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
             return
         try:
             json_files = [os.path.join(r, file) for r, d, f in os.walk(zed.getdir()) for file in f if file.endswith('.json') and not file.startswith('._')]
+            found_mismatch = False
             for json_file in json_files:
                 tmppath, fname = os.path.split(json_file)
+                if zipname_noext not in fname and not found_mismatch:
+                    with open(log, 'a') as logfile:
+                        logfile.write(dt + ',' + 'json_nomatch,' + fname + ',' + zip_file + '\n')
+                    found_mismatch = True
                 os.rename(json_file, os.path.join(tmppath, fname.replace(prestr, poststr)))
             if inspect:
                 print('\n[INSPECT SAVE]:\n  ', zip_file, '\n  ', os.path.join(path, zipname.replace(prestr, poststr)))
