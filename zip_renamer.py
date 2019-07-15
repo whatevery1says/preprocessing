@@ -37,6 +37,8 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
 
     if(prestr==poststr):
         return # skip processing
+    prestr = prestr.replace('\n', '')
+    poststr = poststr.replace('\n', '')
 
     dt = datetime.today().strftime('%Y%m%d-%H%M')
     
