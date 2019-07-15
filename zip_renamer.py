@@ -83,17 +83,18 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
 
 ## CONFIGURE VARIABLES
 
-source_path = 'data_zip'
-# source_path = '/home/we1s-data/data/collect'
-
+# source_path = 'data_zip'
+source_path = '/home/we1s-data/data/collect'
 exclude_list = set(['preprocess-fails'])
+# rename_file = '_rename_list.txt'
+rename_file = '/home/we1s-data/data/_rename_list.txt'
 
 # rename_list = {
 #                '_chicagotribune_': '_thechicagotribune_',
 #                '_invalid.' : '_XX-invalid.',
 #                '_password.' : '_XX-password.',
 #              }
-with open('_rename_list.txt') as f:
+with open(rename_file, 'r') as f:
     rename_list = dict([line.split("\t") for line in f])
 print('\nRENAME LIST\n', rename_list, '\n')
 
