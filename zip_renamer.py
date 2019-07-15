@@ -54,14 +54,14 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
                 logfile.write(dt + ',' + 'zip_fail,' + zip_file + ',' + str(err.__class__.__name__) + ': ' + str(err) + '\n')
             return
         try:
-            json_files = [os.path.join(r, file) for r, d, f in os.walk(zed.getdir()) for file in f if file.endswith('.json') and not file.startswith('._')]
-            found_mismatch = False
+            json_files = [os.path.join(r, file) for r, d, f in os.walk(zed.getdir()) for file in f if file.endswith(('.json', '.xml')) and not file.startswith('._')]
+            # found_mismatch = False
             for json_file in json_files:
                 tmppath, fname = os.path.split(json_file)
-                if zipname_noext not in fname and not found_mismatch:
-                    with open(log, 'a') as logfile:
-                        logfile.write(dt + ',' + 'json_nomatch,' + fname + ',' + zip_file + '\n')
-                    found_mismatch = True
+                # if zipname_noext not in fname and not found_mismatch:
+                #     with open(log, 'a') as logfile:
+                #         logfile.write(dt + ',' + 'json_nomatch,' + fname + ',' + zip_file + '\n')
+                #     found_mismatch = True
                 os.rename(json_file, os.path.join(tmppath, fname.replace(prestr, poststr)))
             if inspect:
                 print('\n[INSPECT SAVE]:\n  ', zip_file, '\n  ', os.path.join(path, zipname.replace(prestr, poststr)))
@@ -71,7 +71,7 @@ def rename_zip_with_jsons(path, zipname, prestr, poststr, inspect=True):
                 os.rename(os.path.join(path, zipname), os.path.join(path, '_' + zipname))
             zed.close()
             with open(log, 'a') as logfile:
-                logfile.write(dt + ',' + 'zip_success,' + zip_file + '\n')
+                logfile.write(dt + ',' + 'zip_success,' + zipname.replace(prestr, poststr) + ',' + zip_file + '\n')
         except (json.decoder.JSONDecodeError, KeyError, PermissionError, ValueError) as err:
             # note that the current code never parses the json -- only renames
             # it, so invalid jsons should succeed without errors.
