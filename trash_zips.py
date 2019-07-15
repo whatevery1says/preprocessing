@@ -20,6 +20,7 @@ def trash_zips_from_file(del_file, source_path, trash_path='trash', inspect=True
     with open(del_file, 'r') as trash_lines:
         for trash_line in trash_lines:
             trash_list.append(trash_line.strip())
+    trash_list = set(trash_list)
 
     print('\ntrash_list:')
     for trash_file in trash_list:
