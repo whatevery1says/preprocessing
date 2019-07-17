@@ -8,7 +8,7 @@ import json
 import time
 import os
 
-from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
+from libs.zipeditor.zipeditor import ZipEditor, zip_scanner, zip_scanner_excludedirs
 from zipfile import BadZipFile
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
@@ -22,7 +22,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
     timings = []
 
     # get list of all zips
-    zip_files = zip_scanner(zip_dir_root)
+    zip_files = zip_scanner_excludedirs(zip_dir_root)
     print(len(zip_files), 'zip files found')
 
     # create a FuzzyHasher for making and comparing hashes
