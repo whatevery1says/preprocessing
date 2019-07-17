@@ -12,6 +12,7 @@ from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
 from zipfile import BadZipFile
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
+from libs.preprocess.preprocess import source_field_from_filename
 from libs.deduper.deduper import LinkFilter
 
 def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='_preprocessing_log.csv', wikifier_output_dir='wikifier', skip_rerun=False):
@@ -88,12 +89,16 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
                     # fix for non-standard content fields
                     changed_scrub = content_field_standardize(data)
+                    
+                    # add source fields, update metapath
+                    namestr = os.path.splitext(os.path.basename(json_file))[0]
+                    changed_source = source_field_from_filename(namestr, data)
 
                     # request a hash add, record if it changed the file
                     changed_hash = fhr.add_hash_to_json(data, update_old=not skip_rerun)
                     
                     # modify file only if something changed
-                    changed_file = changed_scrub or changed_hash
+                    changed_file = changed_scrub or changed_hash or changed_source
                     if changed_file:
                         f.seek(0)
                         json.dump(data, f, indent=2)
