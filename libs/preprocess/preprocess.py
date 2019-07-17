@@ -50,6 +50,45 @@ def content_field_standardize(data):
     return changed_content
 
 
+def source_field_from_filename(namestr, data):
+    """Takes a name string and a dict (json data)
+    and creates the metapath and source fields based
+    on the name.
+    """
+    sources = []
+    namestr_tokens = namestr.split('_')
+    # (chomp_)(pubname)_etc
+    # (proquest_)(pubname)_
+    if namestr_tokens[0] in ['chomp', 'proquest']:
+        data['metapath'] = 'Corpus,' + namestr_tokens[0] +',' + namestr
+        data['sources'] = [namestr_tokens[1]]
+        data['name'] = namestr
+        return True
+    # (11111)_(pubname)_etc
+    # (11111)_(11111)_(pubname)_etc
+    # (11111)_(11111)_(11111)_(pubname)_etc
+    elif namestr_tokens[0].isdigit():
+        if namestr_tokens[1].isdigit():
+            if namestr_tokens[2].isdigit():
+                namestr_source = namestr_tokens[3]
+            else:
+                namestr_source = namestr_tokens[2]
+        else:
+            namestr_source = namestr_tokens[1]
+        data['metapath'] = 'Corpus,lexisnexis,' + namestr
+        data['sources'] = [namestr_source]
+        data['name'] = namestr
+        return True
+    # (reddit)-(pubname)_etc
+    elif 'reddit' in namestr_tokens[0]:
+        rtokens = namestr_tokens[0].split('-')
+        data['metapath'] = 'Corpus,reddit,' + namestr
+        data['sources'] = [rtokens[1]]
+        data['name'] = namestr
+        return True
+    return False
+
+
 # The Document class
 class Document:
     """Model a document's features.
