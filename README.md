@@ -6,10 +6,10 @@ Test repo for WE1S preprocessing script.
 
 1. Normalise whitespace and bad unicode
 
-  a. Match `r'((\r\n)|[\n\v])+'` and replace it with `'\n'`
-  b. Match `r'(?!\n)\s+')` and replace it with `' '`
+  a. Match `r'((\r\n)|[\n\v])+'` and replace it with `'\n'`  
+  b. Match `r'(?!\n)\s+')` and replace it with `' '`  
   c. Trim whitespace from at the start and end of the string
-  d. Normalise the Unicode according 'NFKD' method
+  d. Normalise the Unicode according 'NFKD' method  
   e. If an accented character is Unicode, replace it with an unaccented ASCII equivalent by normalising it according 'NFKD' method.
 
 2. Tokenise according to spaCy's pipeline using the following settings:
