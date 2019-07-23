@@ -44,7 +44,7 @@ class ZipEditor:
 
     """
     
-    def __init__(self, file):
+    def __init__(self, file, dir=None):
         """Create a new ZipEditor based on a file.
 
         Args:
@@ -52,6 +52,7 @@ class ZipEditor:
 
         """
         self.file = file
+        self.dir = dir
         self.tmpdir = None
 
     def __del__(self):
@@ -79,10 +80,12 @@ class ZipEditor:
         else:
             return None
 
-    def open(self):
+    def open(self, dir=None):
         """Unpack zip into temp directory for editing."""
+        if dir is None:
+            dir = self.dir
         if not self.tmpdir:
-            self.tmpdir = tempfile.TemporaryDirectory()
+            self.tmpdir = tempfile.TemporaryDirectory(dir=dir)
             zip_obj = zipfile.ZipFile(self.file, 'r')
             zip_obj.extractall(path=self.tmpdir.name, members=None, pwd=None)
             return self.tmpdir.name
