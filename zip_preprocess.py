@@ -8,21 +8,21 @@ import json
 import time
 import os
 
-from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
+from libs.zipeditor.zipeditor import ZipEditor, zip_scanner, zip_scanner_excludedirs
 from zipfile import BadZipFile
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
 from libs.preprocess.preprocess import Preprocessor, content_field_standardize
 from libs.preprocess.preprocess import source_field_from_filename
 from libs.deduper.deduper import LinkFilter
 
-def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='_preprocessing_log.csv', wikifier_output_dir='wikifier', skip_rerun=False):
+def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log='_preprocessing_log.csv', wikifier_output_dir='wikifier', skip_rerun=False, tmpdir=None):
     """Batch preprocess."""
     # Start the timer
     startBatch = time.time()
     timings = []
 
     # get list of all zips
-    zip_files = zip_scanner(zip_dir_root)
+    zip_files = zip_scanner_excludedirs(zip_dir_root)
     print(len(zip_files), 'zip files found')
 
     # create a FuzzyHasher for making and comparing hashes
@@ -60,7 +60,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
             continue
         print("\n---\nOpening:", zip_file)
         startZip = time.time()
-        with ZipEditor(zip_file) as zed:
+        with ZipEditor(zip_file, tmpdir) as zed:
             changed = False
             try:
                 zed.open()
@@ -169,7 +169,7 @@ def zip_batch_process(zip_dir_root='', source_field='content', preprocessing_log
 
 def main(args):
     """Collection of actions to execute on run."""
-    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki, skip_rerun=args.skip)
+    zip_batch_process(zip_dir_root=args.inpath, source_field=args.content, preprocessing_log=args.log, wikifier_output_dir=args.wiki, skip_rerun=args.skip, tmpdir=args.tmpdir)
 
 
 if __name__ == '__main__':
@@ -186,6 +186,8 @@ if __name__ == '__main__':
                         help='output directory path for wikifier data, e.g. "wikifier"')
     PARSER.add_argument('-s', '--skip', action='store_true',
                         help='skip rerun of any files already listed in log, whether done or fail; false by default')
+    PARSER.add_argument('-t', '--tmpdir', default='',
+                        help='root path for unpacking tmp files, system defined by default')
     # PARSER.add_argument('-d', '--dedupe', action='store_true', help='generate deduplicate analysis, false by default ')
     # PARSER.add_argument('-h', '--hash', action='store_true', help='add fuzzy hashes to articles, false by default ')
     # PARSER.add_argument('-m', '--meta', action='store_true', help='add spacy metadata, false by default')

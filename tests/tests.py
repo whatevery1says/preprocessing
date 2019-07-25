@@ -1,12 +1,14 @@
 import json
 import os
 import unittest
+from pymongo import MongoClient 
 
 import sys
 sys.path.append(".")
 
 from libs.fuzzyhasher.fuzzyhasher import FuzzyHasher
-from libs.zipeditor.zipeditor import ZipEditor, zip_scanner
+from libs.zipeditor.zipeditor import ZipEditor, zip_scanner, ZipProcessor
+from we1s_utils.ziputils import BatchJSONUploader
 
 class TestFuzzyZipEditor(unittest.TestCase):
     """Tests for the ZipEditor + FuzzyHasher."""
@@ -36,6 +38,31 @@ class TestFuzzyZipEditor(unittest.TestCase):
             zed.save(outfile=None)
             # print(files)
 
+    def test_mongo_upload(self):
+        client = MongoClient('mongodb://mongo/')
+        db = client['we1s']
+        hum_uploader = BatchJSONUploader(
+            default_collection=db['humanities-keywords'],
+            deletes_file = '_deletes.txt',
+            deletes_collection=db['deletes-humanities'],
+            filter_name_cant='no-exact-match',
+            filter_name_must='',
+            filter_collection=db['humanities-keywords-no-exact-match'])
+    
+        deletes_comparison = db['deletes-comparison']
+        comp_uploader = BatchJSONUploader(
+            default_collection=db['comparison'],
+            deletes_file = '_deletes.txt',
+            deletes_collection=deletes_comparison,
+            filter_name_cant='',
+            filter_name_must='no-exact-match',
+            filter_collection=deletes_comparison)
+    
+        zp = ZipProcessor('/Users/jeremydouglass/git/preprocessing/data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip', hum_uploader)
+        zp.process()
+        zp = ZipProcessor('/Users/jeremydouglass/git/preprocessing/data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip', comp_uploader)
+        zp.process()
+    
 runner = unittest.TextTestRunner()
 result = runner.run(unittest.makeSuite(TestFuzzyZipEditor))
 print(result)

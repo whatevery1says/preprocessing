@@ -11,7 +11,7 @@ from zipeditor import ZipEditor, zip_scanner
 class TestZipEditor(unittest.TestCase):
     """Tests for the ZipEditor."""
    
-    azipfile = '6742_thenewyorktimes_bodyartpre1singularhistoryorhleadartpre1singularhistory_2012-01-01_2012-12-31.zip'
+    azipfile = 'data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip'
     
     def test_open_close(self):
         """Test manually opening and closing a ZipEditor."""
@@ -60,6 +60,23 @@ class TestZipEditor(unittest.TestCase):
                 h.add_hash_to_json_file(file)
             zed.save(outfile=None)
             # print(files)
+
+    def test_tmp_with_open_save_close(self):
+        """Test with context for open, save, close of a ZIP file.
+        """
+        with ZipEditor(self.azipfile, '_trash') as zed:
+            zed.open()
+            files = [entry.path for entry in os.scandir(zed.tmpdir.name) if entry.path.endswith(".json")]
+            for file in files:
+                with open(file, 'r+') as f:
+                    data = json.load(f)
+                    h = FuzzyHasher()
+                    h.add_hash_to_json(data)
+                    print(data['content-hash-ssdeep'])
+                h.add_hash_to_json_file(file)
+            zed.save(outfile=None)
+            # print(files)
+
 
 runner = unittest.TextTestRunner()
 result = runner.run(unittest.makeSuite(TestZipEditor))

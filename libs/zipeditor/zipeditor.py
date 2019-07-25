@@ -44,7 +44,7 @@ class ZipEditor:
 
     """
     
-    def __init__(self, file):
+    def __init__(self, file, dir=None):
         """Create a new ZipEditor based on a file.
 
         Args:
@@ -52,6 +52,7 @@ class ZipEditor:
 
         """
         self.file = file
+        self.dir = dir
         self.tmpdir = None
 
     def __del__(self):
@@ -79,10 +80,12 @@ class ZipEditor:
         else:
             return None
 
-    def open(self):
+    def open(self, dir=None):
         """Unpack zip into temp directory for editing."""
+        if dir is None:
+            dir = self.dir
         if not self.tmpdir:
-            self.tmpdir = tempfile.TemporaryDirectory()
+            self.tmpdir = tempfile.TemporaryDirectory(dir=dir)
             zip_obj = zipfile.ZipFile(self.file, 'r')
             zip_obj.extractall(path=self.tmpdir.name, members=None, pwd=None)
             return self.tmpdir.name
@@ -112,3 +115,59 @@ class ZipEditor:
             self.tmpdir = None
             return True
         return False    
+
+
+class ZipProcessor(ZipEditor):
+    """Takes a zip file and a processor.
+    Call process() run the processor on zip file.
+    Processor receives a tmp directory,
+    zip file
+    with the processor.
+    """
+    
+    def __init__(self, file, processor):
+        """Create a new ZipEditor based on a file.
+
+        Args:
+            file: a ZIP file. Can be a path to a file (a string), a file-like object, or a path-like object.
+            processor: an object with a do(file) method
+
+        """
+        ZipEditor.__init__(self, file)
+        self.processor = processor
+
+    def process(self, save=False, outfile=None):
+        self.open()
+        self.processor.do(self.getdir())
+        if save:
+            self.save(outfile)
+        self.close()
+
+
+class BatchZipProcessor:
+    
+    def __init__(self, processor, source_path='.', exclude_list=[''], inspect=True):
+        self.processor = processor
+        self.path = path
+        self.exclude_list = exclude_list
+        self.inspect = inspect
+
+    def do(self, save=False, outfile=None):
+        """Walk from a source path, excluding any excluded directories,
+        and do the process to each zip.
+        """
+        zip_files = zip_scanner_excludedirs(source_path=source_path,
+                                            exclude_list=exclude_list, join=False)
+        print('COUNT:', len(zip_files), 'UNIQ:', len(set(zip_files)))
+        
+        for zip_file in zip_files:
+            with ZipProcessor(zip_file, processor) as zed:
+                try:
+                    if inspect:
+                        print('\n[INSPECT]:\n  ', zip_file)
+                    else:
+                        print('\n[PROCESS]:\n  ', zip_file)
+                        zp.process()
+                except (BadZipFile, PermissionError, RuntimeError) as err:
+                    print('\n', err.__class__.__name__, ": ", zip_file, err)
+                    return
