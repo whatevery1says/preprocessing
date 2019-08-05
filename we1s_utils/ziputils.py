@@ -24,8 +24,11 @@ class BatchJSONUploader:
 
     def do(self, files_path):
         # create delete list
-        with open(os.path.join(files_path, self.deletes_file), 'r') as f:
-            self.deletes_list = f.read().splitlines()
+        try:
+            with open(os.path.join(files_path, self.deletes_file), 'r') as f:
+                self.deletes_list = f.read().splitlines()
+        except: (IOError) as err:
+            self.deletes_list = []
         self.json_paths = [os.path.join(r, file) for r, d, f in os.walk(files_path) for file in f if file.endswith('.json') and not file.startswith('._')]
         for json_path in self.json_paths:
             try:
