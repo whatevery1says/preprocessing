@@ -48,7 +48,9 @@ class TestFuzzyZipEditor(unittest.TestCase):
             filter_name_cant='no-exact-match',
             filter_name_must='',
             filter_collection=db['humanities-keywords-no-exact-match'])
-    
+        zp = ZipProcessor('/Users/jeremydouglass/git/preprocessing/data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip', hum_uploader)
+        zp.process()
+
         deletes_comparison = db['deletes-comparison']
         comp_uploader = BatchJSONUploader(
             default_collection=db['comparison'],
@@ -57,9 +59,6 @@ class TestFuzzyZipEditor(unittest.TestCase):
             filter_name_cant='',
             filter_name_must='no-exact-match',
             filter_collection=deletes_comparison)
-    
-        zp = ZipProcessor('/Users/jeremydouglass/git/preprocessing/data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip', hum_uploader)
-        zp.process()
         zp = ZipProcessor('/Users/jeremydouglass/git/preprocessing/data_zip/151550_dailynews_sayandnothumanities_2007-08-01_2007-08-30(no-exact-match).zip', comp_uploader)
         zp.process()
     
