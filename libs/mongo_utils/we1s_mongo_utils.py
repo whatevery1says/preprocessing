@@ -102,7 +102,7 @@ class SourcesProcessor:
                 # if source name is new, create
                 # this is an explicit add -- new named columns in the sheet won't be imported
                 self.source_docs[dkey] = {}
-                self.source_docs[dkey]['_id'] = dkey
+                self.source_docs[dkey]['_id'] = dkey # This creates a problem in Manager pagination
                 self.source_docs[dkey]['name'] = dkey
                 self.source_docs[dkey]['country'] = row['country']
                 self.source_docs[dkey]['language'] = row['language']
@@ -144,7 +144,7 @@ class SourcesProcessor:
 
 
 class ArticleProcessor:
-    """Dynamic rewriting of article data fields, partricularly
+    """Dynamic rewriting of article data fields, particularly
     the source field and api fields.
     Relies on data from source aliases -- uploaded / retrieved with SourcesProcessor
     """
