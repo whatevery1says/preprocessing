@@ -83,7 +83,8 @@ def source_field_from_filename(namestr, data):
     elif 'reddit' in namestr_tokens[0]:
         rtokens = namestr_tokens[0].split('-')
         data['metapath'] = 'Corpus,reddit,' + namestr
-        data['sources'] = [rtokens[1]]
+#         data['sources'] = [rtokens[1]]
+        data['source'] = 'reddit'
         data['name'] = namestr
         return True
     return False
